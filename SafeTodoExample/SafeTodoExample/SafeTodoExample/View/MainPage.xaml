@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SafeTodoExample.View.MainPage"
+             xmlns:Converters="clr-namespace:SafeTodoExample.Converters">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Converters:NegateBooleanConverter x:Key="boolInverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    <ContentPage.Content>
+        <StackLayout HorizontalOptions="Center" VerticalOptions="Center">
+            <Label Text="Safe Todo" FontSize="Large" HorizontalTextAlignment="Center"/>
+            <Label Text="Select Network to connect" HorizontalTextAlignment="Center"/>
+            <Button Text="Mock Network" Command="{Binding MockConnectCommand}">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsMock}" Value="False">
+                        <Setter Property="IsEnabled" Value="False" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+            <Button Text="Live Network" Command="{Binding LiveConnectCommand}">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsMock}" Value="True">
+                        <Setter Property="IsEnabled" Value="False" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>
