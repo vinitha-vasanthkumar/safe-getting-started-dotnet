@@ -11,6 +11,7 @@ namespace App.Network
     {
         private static Session _session { get; set; }
         private static MDataInfo _mdinfo;
+        private const int EntriesToInsert = 5;
 
         public static void InitilizeSession(Session session)
         {
@@ -57,7 +58,7 @@ namespace App.Network
             Console.WriteLine("Adding entries");
             using (var entryActionsH = await _session.MDataEntryActions.NewAsync())
             {
-                for (int i = 0; i < 5; i++)
+                for (int i = 0; i < EntriesToInsert; i++)
                 {
                     var actKey = "key" + i;
                     var actValue = "value" + i;
@@ -91,7 +92,7 @@ namespace App.Network
         private static async Task UpdateEntry()
         {
             var keys = await _session.MData.ListKeysAsync(_mdinfo);
-            var keyToUpdate = keys[new Random().Next(5)];
+            var keyToUpdate = keys[new Random().Next(keys.Count)];
             var newValue = "NewDataValue";
             using (var entriesHandle = await _session.MDataEntryActions.NewAsync())
             {
@@ -104,7 +105,7 @@ namespace App.Network
         private static async Task DeleteEntry()
         {
             var keys = await _session.MData.ListKeysAsync(_mdinfo);
-            var keyToDelete = keys[new Random().Next(5)];
+            var keyToDelete = keys[new Random().Next(keys.Count)];
             using (var entriesHandle = await _session.MDataEntryActions.NewAsync())
             {
                 var value = await _session.MData.GetValueAsync(_mdinfo, keyToDelete.Val);
