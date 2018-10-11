@@ -7,45 +7,66 @@ using System.Threading.Tasks;
 
 namespace MockNetworkExample
 {
-    class Program
+    internal class Program
     {
         private static Mutex mutex = null;
         private static bool _firstApplicationInstance;
 
-        static async Task Main()
+        private static async Task Main()
         {
             string[] args = Environment.GetCommandLineArgs();
             Console.WriteLine("SafeNetwork Console Application");
-
-            if (IsApplicationFirstInstance())
+            try
             {
-                //args[0] is always the path to the application
-                Helpers.RegisterAppProtocol(args[0]);
-                //^the method posted before, that edits registry
+                if (IsApplicationFirstInstance())
+                {
+                    Console.WriteLine("Press Y to use mock safe-browser for authentication : ");
+                    var key = Console.ReadKey().KeyChar;
 
-                // Create a new pipe - it will return immediately and async wait for connections
-                PipeComm.NamedPipeServerCreateServer();
+                    if (key == 'Y' || key == 'y')
+                    {
+                        //args[0] is always the path to the application
+                        Helpers.RegisterAppProtocol(args[0]);
+                        //^the method posted before, that edits registry
 
-                // Request Authentication
-                await Authentication.RequestAuthentication();
-            }
-            else
-            {
-                // We are not the first instance, send the named pipe message with our payload and stop loading
-                if (args.Length >= 2)
+                        // Create a new pipe - it will return immediately and async wait for connections
+                        PipeComm.NamedPipeServerCreateServer();
+
+                        // Request authentication from mock browser
+                        await Authentication.MockAuthenticationWithBrowserAsync();
+                    }
+                    else
+                    {
+                        // Create session from mock authentication
+                        var session = await Authentication.MockAuthenticationAsync();
+
+                        // Perform Mutable Data operations
+                        var mdOperations = new MutableDataOperations(session);
+                        await mdOperations.PerformMDataOperations();
+                    }
+                }
+                else
                 {
                     // We are not the first instance, send the named pipe message with our payload and stop loading
-                    var namedPipePayload = new NamedPipePayload
+                    if (args.Length >= 2)
                     {
-                        SignalQuit = false,
-                        Arguments = args[1]
-                    };
+                        // We are not the first instance, send the named pipe message with our payload and stop loading
+                        var namedPipePayload = new NamedPipePayload
+                        {
+                            SignalQuit = false,
+                            Arguments = args[1]
+                        };
 
-                    // Send the message
-                    PipeComm.NamedPipeClientSendOptions(namedPipePayload);
+                        // Send the message
+                        PipeComm.NamedPipeClientSendOptions(namedPipePayload);
+                    }
+                    // Close app
+                    return;
                 }
-                // Close app
-                return;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception: " + ex.Message);
             }
             Console.ReadLine();
         }
