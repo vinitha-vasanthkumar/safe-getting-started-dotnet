@@ -1,5 +1,8 @@
-﻿using SafeTodoExample.Model;
+﻿using Rg.Plugins.Popup.Extensions;
+using SafeTodoExample.Helpers;
+using SafeTodoExample.Model;
 using SafeTodoExample.ViewModel;
+using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
 namespace SafeTodoExample.View
@@ -39,6 +42,29 @@ namespace SafeTodoExample.View
             }
 
             BindingContext = viewModel;
+            MessageCenterSubscribe();
+        }
+
+        public void MessageCenterUnsubscribe()
+        {
+            MessagingCenter.Unsubscribe<AddItemViewModel>(this, MessengerConstants.HidePopUp);
+        }
+
+        public void MessageCenterSubscribe()
+        {
+            MessagingCenter.Subscribe<AddItemViewModel>(
+               this,
+               MessengerConstants.HidePopUp,
+               async sender =>
+               {
+                   await Navigation.PopPopupAsync(true);
+               });
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            MessageCenterUnsubscribe();
         }
     }
 }

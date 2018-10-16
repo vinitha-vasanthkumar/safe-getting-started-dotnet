@@ -39,7 +39,7 @@ namespace SafeTodoExample.ViewModel
             Device.BeginInvokeOnMainThread(async () => await OnRefreshItemsCommand());
         }
 
-        private async Task OnRefreshItemsCommand()
+        public async Task OnRefreshItemsCommand()
         {
             IsBusy = true;
             try
@@ -65,20 +65,24 @@ namespace SafeTodoExample.ViewModel
             MessagingCenter.Send(this, MessengerConstants.NavigateToAuthPage);
         }
 
-        private async Task OnDeleteItemsCommand(TodoItem item)
+        public async Task OnDeleteItemsCommand(TodoItem item)
         {
             var result = await Application.Current.MainPage.DisplayAlert("Delete item",
                 "Are you sure you want to delete this item from list", "Delete", "Cancel");
             if (result)
             {
                 DialogHelper.ShowToast("Deleting entry...", DialogType.Information);
-
-                await AppService.DeleteItemAsync(item);
+                await DeleteItemAsync(item);
                 if (RefereshItemCommand.CanExecute(null))
                 {
                     RefereshItemCommand.Execute(null);
                 }
-            }
+            }   
+        }
+
+        public async Task DeleteItemAsync(TodoItem item)
+        {
+            await AppService.DeleteItemAsync(item);
         }
 
         private async Task OnUpdateItemsCommand(TodoItem item)

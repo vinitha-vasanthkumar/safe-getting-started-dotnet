@@ -27,17 +27,14 @@ namespace SafeTodoExample.ViewModel
         public ICommand MockConnectCommand => new Command(async () => await ConnectToMockAsync());
         public ICommand LiveConnectCommand => new Command(async () => await ConnectToLiveAsync());
 
-        private async Task ConnectToMockAsync()
+        public async Task ConnectToMockAsync()
         {
             Debug.WriteLine("Initiate Mock Network Connection");
 #if SAFE_APP_MOCK
             try
             {
-                using (Acr.UserDialogs.UserDialogs.Instance.Loading("Authenticating..."))
-                {
-
-                    await AppService.ProcessMockAuthentication();
-                }
+                DialogHelper.ShowToast("Mock Authentication in process", DialogType.Information);
+                await AppService.ProcessMockAuthentication();
                 MessagingCenter.Send(this, MessengerConstants.NavigateToItemPage);
             }
             catch (Exception ex)

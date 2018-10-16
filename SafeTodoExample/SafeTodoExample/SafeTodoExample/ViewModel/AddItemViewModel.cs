@@ -43,7 +43,7 @@ namespace SafeTodoExample.ViewModel
             await Application.Current.MainPage.Navigation.PopPopupAsync(true);
         }
 
-        private async Task OnAddItemCommand()
+        public async Task OnAddItemCommand()
         {
             try
             {
@@ -67,8 +67,8 @@ namespace SafeTodoExample.ViewModel
                 }
 
                 Helpers.DialogHelper.ShowToast("Adding/Updating entry...", Helpers.DialogType.Information);
-
-                await Application.Current.MainPage.Navigation.PopPopupAsync(true);
+                
+                MessagingCenter.Send(this, Helpers.MessengerConstants.HidePopUp);
                 MessagingCenter.Send(this, Helpers.MessengerConstants.RefreshItemList);
             }
             catch (Exception ex)
