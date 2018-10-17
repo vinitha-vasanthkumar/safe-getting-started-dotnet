@@ -8,11 +8,15 @@
     <DefineConstants>TRACE;SAFE_APP_MOCK</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;SAFE_APP_MOCK</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Acr.UserDialogs" Version="7.0.1" />
     <PackageReference Include="MaidSafe.SafeApp" Version="0.1.1" />
-    <PackageReference Include="Rg.Plugins.Popup" Version="1.1.4.168" />
-    <PackageReference Include="Xamarin.Forms" Version="3.1.0.697729" />
+    <PackageReference Include="Rg.Plugins.Popup" Version="1.1.5.180" />
+    <PackageReference Include="Xamarin.Forms" Version="3.4.0.1008975" />
   </ItemGroup>
 
   <ItemGroup>

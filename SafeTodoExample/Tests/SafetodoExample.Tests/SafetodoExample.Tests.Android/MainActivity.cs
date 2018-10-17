@@ -1,42 +1,40 @@
-﻿using System;
-
+﻿
 using Android.App;
 using Android.Content.PM;
-using Android.Runtime;
-using Android.Views;
-using Android.Widget;
 using Android.OS;
 using System.Reflection;
 using Xunit.Runners.UI;
 using Acr.UserDialogs;
+using System.Threading.Tasks;
+using UnitTests.HeadlessRunner;
+using System.Collections.Generic;
 
 namespace SafetodoExample.Tests.Droid
 {
-    [Activity(Label = "SafetodoExample.Tests", Icon = "@mipmap/icon", Theme = "@style/MainTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
+    [Activity(Name = "net.maidsafe.safetodoexampletests.MainActivity", Icon = "@mipmap/icon", Theme = "@style/MainTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
     public class MainActivity : RunnerActivity
     {
         protected override void OnCreate(Bundle bundle)
         {
             UserDialogs.Init(this);
 
-            //var hostIp = Intent.Extras?.GetString("HOST_IP", null);
-            //var hostPort = Intent.Extras?.GetInt("HOST_PORT", 10578) ?? 10578;
+            var hostIp = Intent.Extras?.GetString("HOST_IP", null);
+            var hostPort = Intent.Extras?.GetInt("HOST_PORT", 10578) ?? 10578;
 
-            //if (!string.IsNullOrEmpty(hostIp))
-            //{
-            //    // Run the headless test runner for CI
-            //    Task.Run(() =>
-            //    {
-            //        return Tests.RunAsync(new TestOptions
-            //        {
-            //            Assemblies = new List<Assembly> { typeof(Battery_Tests).Assembly },
-            //            NetworkLogHost = hostIp,
-            //            NetworkLogPort = hostPort,
-            //            Filters = Traits.GetCommonTraits(),
-            //            Format = TestResultsFormat.XunitV2
-            //        });
-            //    });
-            //}
+            if (!string.IsNullOrEmpty(hostIp))
+            {
+                // Run the headless test runner for CI
+                Task.Run(() =>
+                {
+                    return UnitTests.HeadlessRunner.Tests.RunAsync(new TestOptions
+                    {
+                        Assemblies = new List<Assembly> { typeof(Tests).Assembly },
+                        NetworkLogHost = hostIp,
+                        NetworkLogPort = hostPort,
+                        Format = TestResultsFormat.NUnit
+                    });
+                });
+            }
 
             // tests can be inside the main assembly
             AddTestAssembly(Assembly.GetExecutingAssembly());

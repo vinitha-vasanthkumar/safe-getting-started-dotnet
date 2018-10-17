@@ -1,5 +1,4 @@
-﻿using SafetodoExample.Tests;
-using SafeTodoExample.Helpers;
+﻿using SafeTodoExample.Helpers;
 using SafeTodoExample.ViewModel;
 using System;
 using System.Threading.Tasks;
@@ -10,15 +9,27 @@ using Xunit;
 namespace SafetodoExample.Tests
 {
 #if __IOS__
-    [TestCaseOrderer("SafetodoExample.Tests.TestCaseOrderer", "SafetodoExample.iOS.Android")]
+    [TestCaseOrderer("SafetodoExample.Tests.TestCaseOrderer", "SafetodoExampleTestsiOS")]
 #elif __ANDROID__
     [TestCaseOrderer("SafetodoExample.Tests.TestCaseOrderer", "SafetodoExample.Tests.Android")]
 #endif
 
     public class Tests
     {
-
         [Fact, TestPriority(1)]
+        public void IsMockAppTest()
+        {
+            try
+            {
+                Assert.True(SafeApp.AppBindings.AppResolver.Current.IsMockBuild());
+            }
+            catch (Exception ex)
+            {
+                Assert.True(false, ex.Message);
+            }
+        }
+
+        [Fact, TestPriority(2)]
         public async Task MockAuthenticationTest()
         {
             try
@@ -41,7 +52,7 @@ namespace SafetodoExample.Tests
             }
         }
 
-        [Fact, TestPriority(2)]
+        [Fact, TestPriority(3)]
         public async Task MutableOperationsTest()
         {
             try
