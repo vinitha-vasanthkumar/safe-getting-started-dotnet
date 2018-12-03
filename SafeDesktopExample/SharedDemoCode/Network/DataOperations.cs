@@ -1,17 +1,19 @@
-﻿using SafeApp;
-using SafeApp.Utilities;
-using System;
+﻿using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SafeApp;
+using SafeApp.Utilities;
 
 namespace App.Network
 {
     public class MutableDataOperations
     {
-        private Session _session { get; set; }
-        private MDataInfo _mdinfo;
         private const int EntriesToInsert = 5;
+
+        private readonly Session _session;
+
+        private MDataInfo _mdinfo;
 
         public MutableDataOperations(Session session)
         {
@@ -69,7 +71,7 @@ namespace App.Network
                 await _session.MData.MutateEntriesAsync(_mdinfo, entryActionsH);
             }
         }
-        
+
         private async Task ReadEntries()
         {
             using (var entriesHandle = await _session.MDataEntries.GetHandleAsync(_mdinfo))
@@ -81,7 +83,9 @@ namespace App.Network
                     var value = entry.Value.Content;
 
                     if (value.Count == 0)
+                    {
                         continue;
+                    }
 
                     Console.WriteLine("Key : " + key.ToUtfString());
                     Console.WriteLine("Value : " + value.ToUtfString());

@@ -1,15 +1,15 @@
-﻿using App;
-using App.Network;
-using SharedDemoCode;
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using App;
+using App.Network;
+using SharedDemoCode;
 
 namespace LiveNetworkExample
 {
     internal class Program
     {
-        private static Mutex mutex = null;
+        private static Mutex _mutex;
         private static bool _firstApplicationInstance;
 
         private static async Task Main()
@@ -19,9 +19,10 @@ namespace LiveNetworkExample
 
             if (IsApplicationFirstInstance())
             {
-                //args[0] is always the path to the application
+                // args[0] is always the path to the application
                 Helpers.RegisterAppProtocol(args[0]);
-                //^the method posted before, that edits registry
+
+                // ^the method posted before, that edits registry
 
                 // Create a new pipe - it will return immediately and async wait for connections
                 PipeComm.NamedPipeServerCreateServer();
@@ -31,7 +32,6 @@ namespace LiveNetworkExample
             }
             else
             {
-
                 // We are not the first instance, send the named pipe message with our payload and stop loading
                 if (args.Length >= 2)
                 {
@@ -45,6 +45,7 @@ namespace LiveNetworkExample
                     // Send the message
                     PipeComm.NamedPipeClientSendOptions(namedPipePayload);
                 }
+
                 // Close app
                 return;
             }
@@ -54,9 +55,9 @@ namespace LiveNetworkExample
         private static bool IsApplicationFirstInstance()
         {
             // Allow for multiple runs but only try and get the mutex once
-            if (mutex == null)
+            if (_mutex == null)
             {
-                mutex = new Mutex(true, ConsoleAppConstants.AppName, out _firstApplicationInstance);
+                _mutex = new Mutex(true, ConsoleAppConstants.AppName, out _firstApplicationInstance);
             }
             return _firstApplicationInstance;
         }

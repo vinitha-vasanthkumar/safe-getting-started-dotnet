@@ -13,10 +13,9 @@ namespace App
     public static class PipeComm
     {
         private const string PipeName = "PIPE_SafeConsoleApp";
-        private static readonly object _namedPiperServerThreadLock = new object();
+        private static readonly SemaphoreSlim SemaphoreSlim = new SemaphoreSlim(1, 1);
         private static NamedPipeServerStream _namedPipeServerStream;
         private static NamedPipePayload _namedPipePayload;
-        private static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
         /// <summary>
         /// Starts a new pipe server if one isn't already active.
@@ -66,7 +65,7 @@ namespace App
         /// <param name="iAsyncResult"></param>
         public static async void NamedPipeServerConnectionCallback(IAsyncResult iAsyncResult)
         {
-            await semaphoreSlim.WaitAsync();
+            await SemaphoreSlim.WaitAsync();
             try
             {
                 // End waiting for the connection
@@ -75,7 +74,7 @@ namespace App
                 // Read data and prevent access to _namedPipePayload during threaded operations
                 // Read data from client
                 IFormatter f = new BinaryFormatter();
-                _namedPipePayload = (NamedPipePayload)(f.Deserialize(_namedPipeServerStream));
+                _namedPipePayload = (NamedPipePayload)f.Deserialize(_namedPipeServerStream);
 
                 if (_namedPipePayload.SignalQuit)
                 {
@@ -100,7 +99,7 @@ namespace App
             {
                 // Close the original pipe (we will create a new one each time)
                 _namedPipeServerStream.Dispose();
-                semaphoreSlim.Release();
+                SemaphoreSlim.Release();
             }
 
             // Create a new pipe for next connection
@@ -137,7 +136,7 @@ namespace App
                             }
 
                             // client has disconnected
-                            if (buffer.Length == 0)
+                            if (buffer != null && buffer.Length == 0)
                             {
                                 break;
                             }

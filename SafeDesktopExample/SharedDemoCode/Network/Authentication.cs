@@ -2,10 +2,10 @@
 #if SAFE_APP_MOCK
 using SafeApp.MockAuthBindings;
 #endif
-using SafeApp.Utilities;
-using SharedDemoCode;
 using System;
 using System.Threading.Tasks;
+using SafeApp.Utilities;
+using SharedDemoCode;
 
 namespace App.Network
 {
@@ -93,6 +93,7 @@ namespace App.Network
                 {
                     var ipcMsg = decodeResult as AuthIpcMsg;
                     Console.WriteLine("Auth Reqest Granted from Authenticator");
+
                     // Create session object
                     if (ipcMsg != null)
                     {
@@ -112,7 +113,7 @@ namespace App.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception: " + ex.Message); ;
+                Console.WriteLine("Exception: " + ex.Message);
             }
         }
     }

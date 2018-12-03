@@ -1,15 +1,15 @@
-﻿using App;
-using App.Network;
-using SharedDemoCode;
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using App;
+using App.Network;
+using SharedDemoCode;
 
 namespace MockNetworkExample
 {
     internal class Program
     {
-        private static Mutex mutex = null;
+        private static Mutex _mutex;
         private static bool _firstApplicationInstance;
 
         private static async Task Main()
@@ -25,9 +25,10 @@ namespace MockNetworkExample
 
                     if (key == 'Y' || key == 'y')
                     {
-                        //args[0] is always the path to the application
+                        // args[0] is always the path to the application
                         Helpers.RegisterAppProtocol(args[0]);
-                        //^the method posted before, that edits registry
+
+                        // ^the method posted before, that edits registry
 
                         // Create a new pipe - it will return immediately and async wait for connections
                         PipeComm.NamedPipeServerCreateServer();
@@ -60,6 +61,7 @@ namespace MockNetworkExample
                         // Send the message
                         PipeComm.NamedPipeClientSendOptions(namedPipePayload);
                     }
+
                     // Close app
                     return;
                 }
@@ -74,9 +76,9 @@ namespace MockNetworkExample
         private static bool IsApplicationFirstInstance()
         {
             // Allow for multiple runs but only try and get the mutex once
-            if (mutex == null)
+            if (_mutex == null)
             {
-                mutex = new Mutex(true, ConsoleAppConstants.AppName, out _firstApplicationInstance);
+                _mutex = new Mutex(true, ConsoleAppConstants.AppName, out _firstApplicationInstance);
             }
             return _firstApplicationInstance;
         }

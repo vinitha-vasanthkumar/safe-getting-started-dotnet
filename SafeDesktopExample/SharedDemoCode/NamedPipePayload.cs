@@ -6,6 +6,7 @@ namespace App
     public class NamedPipePayload
     {
         public bool SignalQuit { get; set; }
+
         public string Arguments { get; set; }
     }
 }

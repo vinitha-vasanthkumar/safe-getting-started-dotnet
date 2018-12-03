@@ -79,4 +79,9 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\SharedDemoCode\SharedDemoCode.projitems" Label="Shared" />
+
+  <Import Project="$(MSBuildThisFileDirectory)..\..\CodeStyles.targets" />
+  <ItemGroup>
+    <Content Include="..\..\stylecop.json" Link="stylecop.json" />
+  </ItemGroup>
 </Project>
