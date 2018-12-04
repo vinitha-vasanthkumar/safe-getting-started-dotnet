@@ -4,11 +4,13 @@ using System.Threading.Tasks;
 using App;
 using App.Network;
 using SharedDemoCode;
+using SharedDemoCode.Network;
 
 namespace MockNetworkExample
 {
     internal class Program
     {
+        // private static readonly ManualResetEvent resetEvent = new ManualResetEvent(false);
         private static Mutex _mutex;
         private static bool _firstApplicationInstance;
 
@@ -20,30 +22,43 @@ namespace MockNetworkExample
             {
                 if (IsApplicationFirstInstance())
                 {
-                    Console.WriteLine("Press Y to use mock safe-browser for authentication : ");
+                    Console.Write("Press Y to use mock safe-browser for authentication : ");
                     var key = Console.ReadKey().KeyChar;
+                    Console.WriteLine();
 
                     if (key == 'Y' || key == 'y')
                     {
                         // args[0] is always the path to the application
-                        Helpers.RegisterAppProtocol(args[0]);
-
-                        // ^the method posted before, that edits registry
-
-                        // Create a new pipe - it will return immediately and async wait for connections
-                        PipeComm.NamedPipeServerCreateServer();
+                        // update system registery
+                        App.Helpers.RegisterAppProtocol(args[0]);
 
                         // Request authentication from mock browser
                         await Authentication.MockAuthenticationWithBrowserAsync();
+
+                        // Start named pipe server and listen for message
+                        var authResponse = PipeComm.ReceiveNamedPipeServerMessage();
+
+                        if (!string.IsNullOrEmpty(authResponse))
+                        {
+                            // Create session from response
+                            await Authentication.ProcessAuthenticationResponse(authResponse);
+
+                            // Show user menu
+                            UserInput userInput = new UserInput();
+                            await userInput.ShowUserOptions();
+                        }
                     }
                     else
                     {
                         // Create session from mock authentication
                         var session = await Authentication.MockAuthenticationAsync();
 
-                        // Perform Mutable Data operations
-                        var mdOperations = new MutableDataOperations(session);
-                        await mdOperations.PerformMDataOperations();
+                        // Initialise session for Mutable Data operations
+                        MutableDataOperations.InitialiseSession(session);
+
+                        // Show user menu
+                        UserInput userInput = new UserInput();
+                        await userInput.ShowUserOptions();
                     }
                 }
                 else
@@ -51,7 +66,6 @@ namespace MockNetworkExample
                     // We are not the first instance, send the named pipe message with our payload and stop loading
                     if (args.Length >= 2)
                     {
-                        // We are not the first instance, send the named pipe message with our payload and stop loading
                         var namedPipePayload = new NamedPipePayload
                         {
                             SignalQuit = false,
@@ -59,7 +73,7 @@ namespace MockNetworkExample
                         };
 
                         // Send the message
-                        PipeComm.NamedPipeClientSendOptions(namedPipePayload);
+                        PipeComm.SendNamedPipeClient(namedPipePayload);
                     }
 
                     // Close app

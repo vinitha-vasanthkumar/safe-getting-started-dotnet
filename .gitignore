@@ -25,6 +25,8 @@ build-tests/
 *.swp
 *.sublime-*
 *.bk
+.vs
+.vscode
 
 # Manual
 .cargo/

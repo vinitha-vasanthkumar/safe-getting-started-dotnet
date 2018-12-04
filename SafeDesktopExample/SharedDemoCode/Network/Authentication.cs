@@ -21,9 +21,9 @@ namespace App.Network
                 // This way we don't have to authenticate using safe-browser.
 
                 // Generating random credentials
-                var location = Helpers.GetRandomString(10);
-                var password = Helpers.GetRandomString(10);
-                var invitation = Helpers.GetRandomString(15);
+                var location = Helpers.GenerateRandomString(10);
+                var password = Helpers.GenerateRandomString(10);
+                var invitation = Helpers.GenerateRandomString(15);
                 var authenticator = await Authenticator.CreateAccountAsync(location, password, invitation);
                 authenticator = await Authenticator.LoginAsync(location, password);
 
@@ -97,12 +97,9 @@ namespace App.Network
                     // Create session object
                     if (ipcMsg != null)
                     {
-                        // Initialize a new session
+                        // Initialise a new session
                         var session = await Session.AppRegisteredAsync(ConsoleAppConstants.AppId, ipcMsg.AuthGranted);
-
-                        // Perform Mutable Data operations
-                        var mdOperations = new MutableDataOperations(session);
-                        await mdOperations.PerformMDataOperations();
+                        MutableDataOperations.InitialiseSession(session);
                     }
                 }
                 else

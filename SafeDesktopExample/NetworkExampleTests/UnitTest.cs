@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
+using App;
 using App.Network;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SafeApp.Utilities;
+using Helpers = App.Helpers;
 
 namespace NetworkExampleTests
 {
@@ -30,8 +34,31 @@ namespace NetworkExampleTests
                 var session = await Authentication.MockAuthenticationAsync();
                 Assert.IsNotNull(session);
 
-                var mdOperations = new MutableDataOperations(session);
-                await mdOperations.PerformMDataOperations();
+                MutableDataOperations.InitialiseSession(session);
+
+                var mdOperations = new MutableDataOperations();
+                await mdOperations.CreateMutableData();
+
+                await mdOperations.AddEntry(Helpers.GenerateRandomString(10), Helpers.GenerateRandomString(10));
+                var enteries = await mdOperations.GetEntries();
+                Assert.AreEqual(1, enteries.Count);
+
+                var key = Helpers.GenerateRandomString(10);
+                var value = Helpers.GenerateRandomString(10);
+                await mdOperations.AddEntry(key, value);
+                enteries = await mdOperations.GetEntries();
+                Assert.AreEqual(2, enteries.Count);
+
+                var newValue = Helpers.GenerateRandomString(10);
+                await mdOperations.UpdateEntry(key, newValue);
+                enteries = await mdOperations.GetEntries();
+                Assert.AreEqual(
+                    newValue,
+                    enteries.Where(e => e.Key.Val.ToUtfString() == key).FirstOrDefault().Value.Content.ToUtfString());
+
+                await mdOperations.DeleteEntry(key);
+                enteries = (await mdOperations.GetEntries()).Where(e => e.Value.Content.Count != 0).ToList();
+                Assert.AreEqual(1, enteries.Count);
             }
             catch (Exception ex)
             {

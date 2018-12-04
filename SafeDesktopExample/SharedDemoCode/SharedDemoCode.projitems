@@ -14,6 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)NamedPipePayload.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Network\Authentication.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Network\DataOperations.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Network\UserInput.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PipeComm.cs" />
   </ItemGroup>
 </Project>

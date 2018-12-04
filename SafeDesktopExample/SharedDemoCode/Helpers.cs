@@ -26,7 +26,7 @@ namespace App
         // Generating encoded app request using appname, appid, vendor
         public static async Task<(uint, string)> GenerateEncodedAppRequestAsync()
         {
-            Console.WriteLine("Generating application authentication request");
+            Console.WriteLine("\nGenerating application authentication request");
             var authReq = new AuthReq
             {
                 AppContainer = true,
@@ -40,7 +40,7 @@ namespace App
         // Registering URL Protocol in System Registery using full path of the application
         public static void RegisterAppProtocol(string appPath)
         {
-            Console.WriteLine("Registering Apps URL Protocol in Registry");
+            Console.WriteLine("\nRegistering Apps URL Protocol in Registry");
 
             // open App's protocol's subkey
             RegistryKey mainKey = Registry.CurrentUser.OpenSubKey("Software", true)?.OpenSubKey("Classes", true);
@@ -74,7 +74,7 @@ namespace App
         }
 
         // Used to generate random string of any length
-        public static string GetRandomString(int length)
+        public static string GenerateRandomString(int length)
         {
             var random = new Random();
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";

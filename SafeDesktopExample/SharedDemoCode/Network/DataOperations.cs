@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Linq;
-using System.Text;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using SafeApp;
 using SafeApp.Utilities;
@@ -9,112 +8,119 @@ namespace App.Network
 {
     public class MutableDataOperations
     {
-        private const int EntriesToInsert = 5;
-
-        private readonly Session _session;
+        private static Session _session;
 
         private MDataInfo _mdinfo;
 
-        public MutableDataOperations(Session session)
+        public static void InitialiseSession(Session session)
         {
-            _session = session;
-        }
-
-        internal async Task PerformMDataOperations()
-        {
-            await CreateMutableData();
-            await AddEntries();
-            await ReadEntries();
-
-            Console.WriteLine("\nUpdate MData entry");
-            await UpdateEntry();
-            Console.WriteLine("MData entries after update operation");
-            await ReadEntries();
-
-            Console.WriteLine("\nDeleting a randomly selected entry");
-            await DeleteEntry();
-            Console.WriteLine("MData entries after delete operation");
-            await ReadEntries();
-        }
-
-        private async Task CreateMutableData()
-        {
-            Console.WriteLine("\nCreating new mutable data");
-            const ulong tagType = 15010;
-            _mdinfo = await _session.MDataInfoActions.RandomPublicAsync(tagType);
-
-            var mDataPermissionSet = new PermissionSet { Insert = true, ManagePermissions = true, Read = true, Update = true, Delete = true };
-            using (var permissionsH = await _session.MDataPermissions.NewAsync())
+            try
             {
-                using (var appSignKeyH = await _session.Crypto.AppPubSignKeyAsync())
-                {
-                    await _session.MDataPermissions.InsertAsync(permissionsH, appSignKeyH, mDataPermissionSet);
-                    await _session.MData.PutAsync(_mdinfo, permissionsH, NativeHandle.Zero);
-                }
+                _session = session;
             }
-            Console.WriteLine("Mutable data created succesfully\n");
-        }
-
-        private async Task AddEntries()
-        {
-            Console.WriteLine("Adding entries");
-            using (var entryActionsH = await _session.MDataEntryActions.NewAsync())
+            catch (Exception ex)
             {
-                for (int i = 0; i < EntriesToInsert; i++)
-                {
-                    var actKey = "key" + i;
-                    var actValue = "value" + i;
-                    var key = Encoding.ASCII.GetBytes(actKey).ToList();
-                    var value = Encoding.ASCII.GetBytes(actValue).ToList();
-                    await _session.MDataEntryActions.InsertAsync(entryActionsH, key, value);
-                }
-                await _session.MData.MutateEntriesAsync(_mdinfo, entryActionsH);
+                Console.WriteLine($"Error: {ex.Message}");
             }
         }
 
-        private async Task ReadEntries()
+        internal async Task CreateMutableData()
         {
-            using (var entriesHandle = await _session.MDataEntries.GetHandleAsync(_mdinfo))
+            try
             {
-                var entries = await _session.MData.ListEntriesAsync(entriesHandle);
-                foreach (var entry in entries)
-                {
-                    var key = entry.Key.Val;
-                    var value = entry.Value.Content;
+                Console.WriteLine("\nCreating new mutable data");
+                const ulong tagType = 15010;
+                _mdinfo = await _session.MDataInfoActions.RandomPublicAsync(tagType);
 
-                    if (value.Count == 0)
+                var mDataPermissionSet = new PermissionSet { Insert = true, ManagePermissions = true, Read = true, Update = true, Delete = true };
+                using (var permissionsH = await _session.MDataPermissions.NewAsync())
+                {
+                    using (var appSignKeyH = await _session.Crypto.AppPubSignKeyAsync())
                     {
-                        continue;
+                        await _session.MDataPermissions.InsertAsync(permissionsH, appSignKeyH, mDataPermissionSet);
+                        await _session.MData.PutAsync(_mdinfo, permissionsH, NativeHandle.Zero);
                     }
+                }
+                Console.WriteLine("Mutable data created succesfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                Console.ReadLine();
+                Environment.Exit(1);
+            }
+        }
 
-                    Console.WriteLine("Key : " + key.ToUtfString());
-                    Console.WriteLine("Value : " + value.ToUtfString());
+        internal async Task AddEntry(string key, string value)
+        {
+            try
+            {
+                using (var entryActionsH = await _session.MDataEntryActions.NewAsync())
+                {
+                    var encodedKey = key.ToUtfBytes();
+                    var encodedValue = value.ToUtfBytes();
+                    await _session.MDataEntryActions.InsertAsync(entryActionsH, encodedKey, encodedValue);
+                    await _session.MData.MutateEntriesAsync(_mdinfo, entryActionsH);
+                }
+                Console.WriteLine("Entry Added");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+        }
+
+        internal async Task<List<MDataEntry>> GetEntries()
+        {
+            List<MDataEntry> entries = new List<MDataEntry>();
+            try
+            {
+                using (var entriesHandle = await _session.MDataEntries.GetHandleAsync(_mdinfo))
+                {
+                    entries = await _session.MData.ListEntriesAsync(entriesHandle);
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+            return entries;
         }
 
-        private async Task UpdateEntry()
+        internal async Task UpdateEntry(string key, string newValue)
         {
-            var keys = await _session.MData.ListKeysAsync(_mdinfo);
-            var keyToUpdate = keys[new Random().Next(keys.Count)];
-            var newValue = "NewDataValue";
-            using (var entriesHandle = await _session.MDataEntryActions.NewAsync())
+            try
             {
-                var value = await _session.MData.GetValueAsync(_mdinfo, keyToUpdate.Val);
-                await _session.MDataEntryActions.UpdateAsync(entriesHandle, keyToUpdate.Val, newValue.ToUtfBytes(), value.Item2 + 1);
-                await _session.MData.MutateEntriesAsync(_mdinfo, entriesHandle);
+                var keyToUpdate = key.ToUtfBytes();
+                var newValueToUpdate = newValue.ToUtfBytes();
+                using (var entriesHandle = await _session.MDataEntryActions.NewAsync())
+                {
+                    var value = await _session.MData.GetValueAsync(_mdinfo, keyToUpdate);
+                    await _session.MDataEntryActions.UpdateAsync(entriesHandle, keyToUpdate, newValueToUpdate, value.Item2 + 1);
+                    await _session.MData.MutateEntriesAsync(_mdinfo, entriesHandle);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
             }
         }
 
-        private async Task DeleteEntry()
+        internal async Task DeleteEntry(string key)
         {
-            var keys = await _session.MData.ListKeysAsync(_mdinfo);
-            var keyToDelete = keys[new Random().Next(keys.Count)];
-            using (var entriesHandle = await _session.MDataEntryActions.NewAsync())
+            try
             {
-                var value = await _session.MData.GetValueAsync(_mdinfo, keyToDelete.Val);
-                await _session.MDataEntryActions.DeleteAsync(entriesHandle, keyToDelete.Val, value.Item2 + 1);
-                await _session.MData.MutateEntriesAsync(_mdinfo, entriesHandle);
+                var keyToDelete = key.ToUtfBytes();
+                using (var entriesHandle = await _session.MDataEntryActions.NewAsync())
+                {
+                    var value = await _session.MData.GetValueAsync(_mdinfo, keyToDelete);
+                    await _session.MDataEntryActions.DeleteAsync(entriesHandle, keyToDelete, value.Item2 + 1);
+                    await _session.MData.MutateEntriesAsync(_mdinfo, entriesHandle);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
             }
         }
     }

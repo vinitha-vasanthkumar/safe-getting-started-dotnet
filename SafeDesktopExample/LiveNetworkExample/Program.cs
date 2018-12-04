@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using App;
 using App.Network;
 using SharedDemoCode;
+using SharedDemoCode.Network;
 
 namespace LiveNetworkExample
 {
@@ -20,15 +21,24 @@ namespace LiveNetworkExample
             if (IsApplicationFirstInstance())
             {
                 // args[0] is always the path to the application
-                Helpers.RegisterAppProtocol(args[0]);
+                // update system registery
+                App.Helpers.RegisterAppProtocol(args[0]);
 
-                // ^the method posted before, that edits registry
-
-                // Create a new pipe - it will return immediately and async wait for connections
-                PipeComm.NamedPipeServerCreateServer();
-
-                // Request Authentication
+                // Request authentication from mock browser
                 await Authentication.NonMockAuthenticationWithBrowserAsync();
+
+                // Start named pipe server and listen for message
+                var authResponse = PipeComm.ReceiveNamedPipeServerMessage();
+
+                if (!string.IsNullOrEmpty(authResponse))
+                {
+                    // Create session from response
+                    await Authentication.ProcessAuthenticationResponse(authResponse);
+
+                    // Show user menu
+                    UserInput userInput = new UserInput();
+                    await userInput.ShowUserOptions();
+                }
             }
             else
             {
@@ -43,7 +53,7 @@ namespace LiveNetworkExample
                     };
 
                     // Send the message
-                    PipeComm.NamedPipeClientSendOptions(namedPipePayload);
+                    PipeComm.SendNamedPipeClient(namedPipePayload);
                 }
 
                 // Close app
