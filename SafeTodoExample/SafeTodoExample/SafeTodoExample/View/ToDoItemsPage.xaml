@@ -6,7 +6,7 @@
              Title="Todo Items">
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="Add Item" Command="{Binding AddItemCommand}" />
-        <ToolbarItem Text="Refresh" Order="Secondary" Command="{Binding RefereshItemCommand}" />
+        <ToolbarItem Text="Refresh" Order="Secondary" Command="{Binding RefreshItemCommand}" />
         <ToolbarItem Text="Logout" Order="Secondary" Command="{Binding LogoutCommand}" />
     </ContentPage.ToolbarItems>
     <ContentPage.Content>

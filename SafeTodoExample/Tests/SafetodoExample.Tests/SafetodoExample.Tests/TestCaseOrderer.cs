@@ -28,8 +28,8 @@ namespace SafetodoExample.Tests
 
             foreach (var list in sortedMethods.Keys.Select(priority => sortedMethods[priority]))
             {
-                list.Sort((x, y) => StringComparer.OrdinalIgnoreCase.Compare(x.TestMethod.Method.Name,
-                    y.TestMethod.Method.Name));
+                list.Sort((x, y) => StringComparer.OrdinalIgnoreCase.Compare(
+                    x.TestMethod.Method.Name, y.TestMethod.Method.Name));
 
                 foreach (var testCase in list)
                 {

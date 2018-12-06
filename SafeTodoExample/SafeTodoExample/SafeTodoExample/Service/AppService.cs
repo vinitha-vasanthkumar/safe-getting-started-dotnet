@@ -1,14 +1,14 @@
-﻿using SafeApp;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using SafeApp;
 using SafeApp.Utilities;
+using SafeTodoExample.Helpers;
 using SafeTodoExample.Model;
 using SafeTodoExample.Service;
-using System;
-using System.Collections.Generic;
 using Xamarin.Forms;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Collections.ObjectModel;
-using SafeTodoExample.Helpers;
 #if SAFE_APP_MOCK
 using SafeApp.MockAuthBindings;
 #endif
@@ -23,9 +23,9 @@ namespace SafeTodoExample.Service
         public const string AppName = "Safe Todo";
         private string mdByteList = "MySafeToDo";
         public const string AuthDeniedMessage = "Failed to receive Authentication.";
+        private static bool _newMdInfoFlag;
         private Session _session;
-        public static bool _newMdInfoFlag = false;
-        public bool _mDataAvilable = false;
+        private bool _mDataAvailable;
         private MDataInfo _mDataInfo;
 
         public AppService()
@@ -51,7 +51,7 @@ namespace SafeTodoExample.Service
             _session = null;
             _mDataInfo.Name = null;
             _newMdInfoFlag = false;
-            _mDataAvilable = false;
+            _mDataAvailable = false;
         }
 
         private void OnSessionDisconnected(object obj, EventArgs e)
@@ -94,7 +94,7 @@ namespace SafeTodoExample.Service
             {
                 Debug.WriteLine("Error : " + ex.Message);
             }
-            _mDataAvilable = true;
+            _mDataAvailable = true;
         }
 
         public async Task StoreMdInfoAsync()
@@ -126,7 +126,7 @@ namespace SafeTodoExample.Service
             ObservableCollection<TodoItem> messages = new ObservableCollection<TodoItem>();
             try
             {
-                if (!_mDataAvilable)
+                if (!_mDataAvailable)
                 {
                     await GetMdInfoAsync();
                 }
@@ -225,7 +225,6 @@ namespace SafeTodoExample.Service
             }
         }
 
-
         #endregion
 
         #region Test Network Authentication
@@ -235,7 +234,7 @@ namespace SafeTodoExample.Service
             AuthReq authReq = new AuthReq
             {
                 AppContainer = true,
-                App = new AppExchangeInfo { Id = AppId, Scope = "", Name = "SAFE Todo App", Vendor = "MaidSafe.net Ltd" },
+                App = new AppExchangeInfo { Id = AppId, Scope = string.Empty, Name = "SAFE Todo App", Vendor = "MaidSafe.net Ltd" },
                 Containers = new List<ContainerPermissions>
                 {
                     new ContainerPermissions
@@ -303,7 +302,7 @@ namespace SafeTodoExample.Service
         {
             Debug.WriteLine($"LoginAsync: {location} - {password}");
             _authenticator = await Authenticator.LoginAsync(location, password);
-            Debug.WriteLine("Loggedin Successfully");
+            Debug.WriteLine("Log-in Successfully");
         }
 
         private async Task CreateDemoTodoApp()
@@ -311,7 +310,7 @@ namespace SafeTodoExample.Service
             AuthReq authReq = new AuthReq
             {
                 AppContainer = true,
-                App = new AppExchangeInfo { Id = AppId, Scope = "", Name = AppName, Vendor = "MaidSafe.net Ltd" },
+                App = new AppExchangeInfo { Id = AppId, Scope = string.Empty, Name = AppName, Vendor = "MaidSafe.net Ltd" },
                 Containers = new List<ContainerPermissions> { new ContainerPermissions { ContName = "_publicNames", Access = { Insert = true, Update = true, Delete = true } } }
             };
 
@@ -339,7 +338,11 @@ namespace SafeTodoExample.Service
 
         public async Task LogoutAsync()
         {
-            await Task.Run(() => { _authenticator.Dispose(); Dispose(); });
+            await Task.Run(() =>
+            {
+                _authenticator.Dispose();
+                Dispose();
+            });
         }
 #else
         public async Task LogoutAsync()

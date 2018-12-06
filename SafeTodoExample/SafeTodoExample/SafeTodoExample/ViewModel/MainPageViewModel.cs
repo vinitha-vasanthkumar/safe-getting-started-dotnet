@@ -1,9 +1,9 @@
-﻿using SafeTodoExample.Helpers;
-using SafeTodoExample.ViewModel.Base;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using SafeTodoExample.Helpers;
+using SafeTodoExample.ViewModel.Base;
 using Xamarin.Forms;
 
 namespace SafeTodoExample.ViewModel
@@ -25,6 +25,7 @@ namespace SafeTodoExample.ViewModel
         }
 
         public ICommand MockConnectCommand => new Command(async () => await ConnectToMockAsync());
+
         public ICommand LiveConnectCommand => new Command(async () => await ConnectToLiveAsync());
 
         public async Task ConnectToMockAsync()
@@ -55,7 +56,6 @@ namespace SafeTodoExample.ViewModel
                 DialogHelper.ShowToast(AuthInProgressMessage, DialogType.Information);
                 var url = await AppService.GenerateAppRequestAsync();
                 Device.BeginInvokeOnMainThread(() => { Device.OpenUri(new Uri(url)); });
-                //MessagingCenter.Send(this, MessengerConstants.NavigateToItemPage);
             }
             catch (Exception ex)
             {

@@ -1,8 +1,7 @@
-﻿
-using Foundation;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using Foundation;
 using UIKit;
 using UnitTests.HeadlessRunner;
 using Xunit.Runner;

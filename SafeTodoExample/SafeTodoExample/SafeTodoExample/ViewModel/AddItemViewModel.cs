@@ -1,9 +1,9 @@
-﻿using Rg.Plugins.Popup.Extensions;
-using SafeTodoExample.Model;
-using SafeTodoExample.ViewModel.Base;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Rg.Plugins.Popup.Extensions;
+using SafeTodoExample.Model;
+using SafeTodoExample.ViewModel.Base;
 using Xamarin.Forms;
 
 namespace SafeTodoExample.ViewModel
@@ -12,11 +12,15 @@ namespace SafeTodoExample.ViewModel
     {
         private string _title;
         private string _detail;
+
         public string Title { get => _title; set => SetProperty(ref _title, value); }
+
         public string Details { get => _detail; set => SetProperty(ref _detail, value); }
+
         public bool Edit { get; }
 
         public ICommand AddItemCommand { get; private set; }
+
         public ICommand CloseDialogCommand { get; private set; }
 
         public AddItemViewModel()
@@ -56,7 +60,7 @@ namespace SafeTodoExample.ViewModel
                 {
                     throw new Exception("Max body length is 150 characters.");
                 }
-                
+
                 if (Edit)
                 {
                     await AppService.UpdateItemAsync(new TodoItem { Title = Title, Detail = Details });
@@ -67,7 +71,7 @@ namespace SafeTodoExample.ViewModel
                 }
 
                 Helpers.DialogHelper.ShowToast("Adding/Updating entry...", Helpers.DialogType.Information);
-                
+
                 MessagingCenter.Send(this, Helpers.MessengerConstants.HidePopUp);
                 MessagingCenter.Send(this, Helpers.MessengerConstants.RefreshItemList);
             }

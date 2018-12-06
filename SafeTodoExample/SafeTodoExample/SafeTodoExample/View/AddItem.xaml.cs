@@ -8,11 +8,12 @@ using Xamarin.Forms.Xaml;
 namespace SafeTodoExample.View
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class AddItem : Rg.Plugins.Popup.Pages.PopupPage
+    public partial class AddItem
     {
-        private AddItemViewModel viewModel;
-        private TodoItem _item;
-        private bool _edit = false;
+        private readonly TodoItem _item;
+        private readonly bool _edit;
+        private AddItemViewModel _viewModel;
+
         public AddItem()
         {
             InitializeComponent();
@@ -29,19 +30,19 @@ namespace SafeTodoExample.View
         {
             base.OnAppearing();
 
-            if (viewModel == null)
+            if (_viewModel == null)
             {
                 if (_edit)
                 {
-                    viewModel = new AddItemViewModel(_item, _edit);
+                    _viewModel = new AddItemViewModel(_item, _edit);
                 }
                 else
                 {
-                    viewModel = new AddItemViewModel();
+                    _viewModel = new AddItemViewModel();
                 }
             }
 
-            BindingContext = viewModel;
+            BindingContext = _viewModel;
             MessageCenterSubscribe();
         }
 
@@ -57,7 +58,7 @@ namespace SafeTodoExample.View
                MessengerConstants.HidePopUp,
                async sender =>
                {
-                   await Navigation.PopPopupAsync(true);
+                   await Navigation.PopPopupAsync();
                });
         }
 

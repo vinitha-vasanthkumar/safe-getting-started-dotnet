@@ -107,4 +107,8 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)..\..\..\CodeStyles.targets" />
+  <ItemGroup>
+    <Content Include="..\..\..\stylecop.json" Link="stylecop.json" />
+  </ItemGroup>
 </Project>

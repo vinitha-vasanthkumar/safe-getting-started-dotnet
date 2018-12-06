@@ -12,7 +12,7 @@ namespace SafeTodoExample.Helpers
 
         public static string GetRequestData(string url)
         {
-            return new Uri(url).PathAndQuery.Replace("/", "");
+            return new Uri(url).PathAndQuery.Replace("/", string.Empty);
         }
     }
 }

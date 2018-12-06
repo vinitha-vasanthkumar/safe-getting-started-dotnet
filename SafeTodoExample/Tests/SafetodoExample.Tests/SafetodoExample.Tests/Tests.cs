@@ -1,7 +1,7 @@
-﻿using SafeTodoExample.Helpers;
-using SafeTodoExample.ViewModel;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using SafeTodoExample.Helpers;
+using SafeTodoExample.ViewModel;
 using Xamarin.Forms;
 using Xunit;
 
@@ -16,7 +16,8 @@ namespace SafetodoExample.Tests
 
     public class Tests
     {
-        [Fact, TestPriority(1)]
+        [Fact]
+        [TestPriority(1)]
         public void IsMockAppTest()
         {
             try
@@ -29,7 +30,8 @@ namespace SafetodoExample.Tests
             }
         }
 
-        [Fact, TestPriority(2)]
+        [Fact]
+        [TestPriority(2)]
         public async Task MockAuthenticationTest()
         {
             try
@@ -52,7 +54,8 @@ namespace SafetodoExample.Tests
             }
         }
 
-        [Fact, TestPriority(3)]
+        [Fact]
+        [TestPriority(3)]
         public async Task MutableOperationsTest()
         {
             try

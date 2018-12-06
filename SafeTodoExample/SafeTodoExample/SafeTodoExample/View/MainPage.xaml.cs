@@ -10,7 +10,8 @@ namespace SafeTodoExample.View
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class MainPage : ContentPage
     {
-        private MainPageViewModel viewModel;
+        private MainPageViewModel _viewModel;
+
         public MainPage()
         {
             InitializeComponent();
@@ -50,12 +51,12 @@ namespace SafeTodoExample.View
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            if (viewModel == null)
+            if (_viewModel == null)
             {
-                viewModel = new MainPageViewModel();
+                _viewModel = new MainPageViewModel();
             }
 
-            BindingContext = viewModel;
+            BindingContext = _viewModel;
 
             MessageCenterSubscribe();
         }

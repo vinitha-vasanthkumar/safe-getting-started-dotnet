@@ -17,9 +17,9 @@ var IOS_TEST_RESULTS_PATH = "./ios-test.xml";
 var ANDROID_HOME = EnvironmentVariable("ANDROID_HOME");
 var ANDROID_PROJ = "./Tests/SafetodoExample.Tests/SafetodoExample.Tests.Android/SafetodoExample.Tests.Android.csproj";
 var ANDROID_TEST_RESULTS_PATH = "./android-test.xml";
-var ANDROID_AVD = "google_api_device";
+var ANDROID_AVD = "SafeAppEmulator";
 var ANDROID_PKG_NAME = "net.maidsafe.safetodoexampletests";
-var ANDROID_EMU_TARGET = EnvironmentVariable("ANDROID_EMU_TARGET") ?? "system-images;android-26;google_apis;x86";
+var ANDROID_EMU_TARGET = EnvironmentVariable("ANDROID_EMU_TARGET") ?? "system-images;android-28;google_apis;x86_64";
 var ANDROID_EMU_DEVICE = EnvironmentVariable("ANDROID_EMU_DEVICE") ?? "Nexus 5X";
 
 var TCP_LISTEN_TIMEOUT = 1000;
@@ -203,7 +203,7 @@ Task ("Run-Android-Tests")
     // Start up the emulator by name
     Information ("Starting Emulator: {0}...", ANDROID_AVD);
     var emu = StartAndReturnProcess (emulatorPath, new ProcessSettings { 
-        Arguments = $"-avd {ANDROID_AVD}" });
+        Arguments = $"-avd {ANDROID_AVD}  -gpu auto -noaudio" });
 
     var adbSettings = new AdbToolSettings { SdkRoot = ANDROID_HOME };
 
@@ -264,7 +264,7 @@ Task ("Run-Android-Tests")
 
 
 Task("Default")
-//   .IsDependentOn ("Run-Android-Tests")
+	.IsDependentOn ("Run-Android-Tests")
   .IsDependentOn ("Run-iOS-Tests")
 
   .Does(() => { });

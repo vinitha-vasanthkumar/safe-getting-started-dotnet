@@ -2,13 +2,14 @@
 
 namespace SafetodoExample.Tests
 {
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Method)]
     public class TestPriorityAttribute : Attribute
     {
         public int Priority { get; set; }
-        public TestPriorityAttribute(int Priority)
+
+        public TestPriorityAttribute(int priority)
         {
-            this.Priority = Priority;
+            Priority = priority;
         }
     }
 }

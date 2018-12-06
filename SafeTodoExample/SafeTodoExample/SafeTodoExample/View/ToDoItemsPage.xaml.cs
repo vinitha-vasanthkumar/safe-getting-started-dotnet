@@ -9,7 +9,8 @@ namespace SafeTodoExample.View
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class ToDoItemsPage : ContentPage
     {
-        private TodoItemsPageViewModel viewModel;
+        private TodoItemsPageViewModel _viewModel;
+
         public ToDoItemsPage()
         {
             InitializeComponent();
@@ -18,12 +19,12 @@ namespace SafeTodoExample.View
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            if (viewModel == null)
+            if (_viewModel == null)
             {
-                viewModel = new TodoItemsPageViewModel();
+                _viewModel = new TodoItemsPageViewModel();
             }
 
-            BindingContext = viewModel;
+            BindingContext = _viewModel;
             MessageCenterSubscribe();
 
             TodoItemListView.ItemTapped += TodoItemListView_ItemTapped;
@@ -50,9 +51,9 @@ namespace SafeTodoExample.View
                {
                    Device.BeginInvokeOnMainThread(() =>
                    {
-                       if (viewModel.RefereshItemCommand.CanExecute(null))
+                       if (_viewModel.RefreshItemCommand.CanExecute(null))
                        {
-                           viewModel.RefereshItemCommand.Execute(null);
+                           _viewModel.RefreshItemCommand.Execute(null);
                        }
                    });
                });

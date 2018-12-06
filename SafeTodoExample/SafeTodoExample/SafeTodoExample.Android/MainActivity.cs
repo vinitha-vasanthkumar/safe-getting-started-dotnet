@@ -1,11 +1,11 @@
-﻿using Android.OS;
+﻿using System;
 using Acr.UserDialogs;
-using SafeTodoExample.Service;
 using Android.App;
-using Android.Content.PM;
 using Android.Content;
+using Android.Content.PM;
+using Android.OS;
+using SafeTodoExample.Service;
 using Xamarin.Forms;
-using System;
 
 namespace SafeTodoExample.Droid
 {
@@ -15,12 +15,11 @@ namespace SafeTodoExample.Droid
         Theme = "@style/MainTheme",
         MainLauncher = true,
         LaunchMode = LaunchMode.SingleTask,
-        ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation),
-        IntentFilter(
+        ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
+    [IntentFilter(
             new[] { Intent.ActionView },
             Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable },
-            DataScheme = AppService.AppId
-        )]
+            DataScheme = AppService.AppId)]
     public class MainActivity : global::Xamarin.Forms.Platform.Android.FormsAppCompatActivity
     {
         private AppService AppService => DependencyService.Get<AppService>();
@@ -72,4 +71,3 @@ namespace SafeTodoExample.Droid
         }
     }
 }
-

@@ -1,13 +1,12 @@
-﻿
+﻿using System.Collections.Generic;
+using System.Reflection;
+using System.Threading.Tasks;
+using Acr.UserDialogs;
 using Android.App;
 using Android.Content.PM;
 using Android.OS;
-using System.Reflection;
-using Xunit.Runners.UI;
-using Acr.UserDialogs;
-using System.Threading.Tasks;
 using UnitTests.HeadlessRunner;
-using System.Collections.Generic;
+using Xunit.Runners.UI;
 
 namespace SafetodoExample.Tests.Droid
 {
@@ -54,7 +53,6 @@ namespace SafetodoExample.Tests.Droid
 
             // you cannot add more assemblies once calling base
             base.OnCreate(bundle);
-
         }
     }
 }
