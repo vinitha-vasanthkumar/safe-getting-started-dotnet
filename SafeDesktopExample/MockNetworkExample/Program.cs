@@ -10,7 +10,6 @@ namespace MockNetworkExample
 {
     internal class Program
     {
-        // private static readonly ManualResetEvent resetEvent = new ManualResetEvent(false);
         private static Mutex _mutex;
         private static bool _firstApplicationInstance;
 
