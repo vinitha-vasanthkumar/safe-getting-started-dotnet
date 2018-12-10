@@ -38,7 +38,7 @@ namespace App.Network
                     using (var appSignKeyH = await _session.Crypto.AppPubSignKeyAsync())
                     {
                         await _session.MDataPermissions.InsertAsync(permissionsH, appSignKeyH, mDataPermissionSet);
-                        await _session.MData.PutAsync(_mdinfo, permissionsH, NativeHandle.Zero);
+                        await _session.MData.PutAsync(_mdinfo, permissionsH, NativeHandle.EmptyMDataEntries);
                     }
                 }
                 Console.WriteLine("Mutable data created succesfully");

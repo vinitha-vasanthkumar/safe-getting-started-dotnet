@@ -54,7 +54,7 @@ namespace NetworkExampleTests
                 enteries = await mdOperations.GetEntries();
                 Assert.AreEqual(
                     newValue,
-                    enteries.Where(e => e.Key.Val.ToUtfString() == key).FirstOrDefault().Value.Content.ToUtfString());
+                    enteries.Where(e => e.Key.Key.ToUtfString() == key).FirstOrDefault().Value.Content.ToUtfString());
 
                 await mdOperations.DeleteEntry(key);
                 enteries = (await mdOperations.GetEntries()).Where(e => e.Value.Content.Count != 0).ToList();

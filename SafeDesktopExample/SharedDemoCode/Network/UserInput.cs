@@ -86,7 +86,7 @@ namespace SharedDemoCode.Network
             var entries = await _mdOperations.GetEntries();
             foreach (var entry in entries)
             {
-                var key = entry.Key.Val;
+                var key = entry.Key.Key;
                 var value = entry.Value.Content;
 
                 if (value.Count == 0)
