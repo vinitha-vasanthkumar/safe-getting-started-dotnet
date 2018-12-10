@@ -137,8 +137,8 @@ namespace SafeTodoExample.Service
                     List<MDataEntry> entries = await _session.MData.ListEntriesAsync(entiredH);
                     foreach (MDataEntry item in entries)
                     {
-                        var plainkey = item.Key.Val;
-                        var vl = await _session.MData.GetValueAsync(_mDataInfo, item.Key.Val);
+                        var plainkey = item.Key.Key;
+                        var vl = await _session.MData.GetValueAsync(_mDataInfo, item.Key.Key);
                         var plainvalue = vl.Item1;
                         Debug.WriteLine("Key : {0}, Value : {1}", plainkey.ToUtfString(), plainvalue.ToUtfString());
                         if (plainvalue.Count > 0)
