@@ -22,15 +22,14 @@ namespace MockNetworkExample
             {
                 if (IsApplicationFirstInstance())
                 {
-                    Console.Write("Press Y to use mock safe-browser for authentication : ");
-                    var key = Console.ReadKey().KeyChar;
-                    Console.WriteLine();
+                    Console.Write("Press Y/y to use mock safe-browser for authentication otherwise a random mock account will be used : ");
+                    var input = Console.ReadLine();
 
-                    if (key == 'Y' || key == 'y')
+                    if (input.Equals("Y") || input.Equals("y"))
                     {
                         // args[0] is always the path to the application
                         // update system registery
-                        App.Helpers.RegisterAppProtocol(args[0]);
+                        Helpers.RegisterAppProtocol(args[0]);
 
                         // Request authentication from mock browser
                         await Authentication.MockAuthenticationWithBrowserAsync();

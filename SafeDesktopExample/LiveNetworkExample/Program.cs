@@ -22,7 +22,7 @@ namespace LiveNetworkExample
             {
                 // args[0] is always the path to the application
                 // update system registery
-                App.Helpers.RegisterAppProtocol(args[0]);
+                Helpers.RegisterAppProtocol(args[0]);
 
                 // Request authentication from mock browser
                 await Authentication.NonMockAuthenticationWithBrowserAsync();
