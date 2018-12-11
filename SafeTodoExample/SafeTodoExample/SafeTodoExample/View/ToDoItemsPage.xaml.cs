@@ -16,7 +16,7 @@ namespace SafeTodoExample.View
             InitializeComponent();
         }
 
-        protected override void OnAppearing()
+        protected override async void OnAppearing()
         {
             base.OnAppearing();
             if (_viewModel == null)
@@ -28,6 +28,8 @@ namespace SafeTodoExample.View
             MessageCenterSubscribe();
 
             TodoItemListView.ItemTapped += TodoItemListView_ItemTapped;
+
+            await _viewModel.OnRefreshItemsCommand();
         }
 
         private void TodoItemListView_ItemTapped(object sender, ItemTappedEventArgs e)

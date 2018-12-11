@@ -38,7 +38,6 @@ namespace SafeTodoExample.ViewModel
             UpdateItemCommand = new Command(async (item) => await OnUpdateItemsCommand((TodoItem)item));
             DeleteItemCommand = new Command(async (item) => await OnDeleteItemsCommand((TodoItem)item));
             ToDoItems = new ObservableCollection<TodoItem>();
-            Device.BeginInvokeOnMainThread(async () => await OnRefreshItemsCommand());
         }
 
         public async Task OnRefreshItemsCommand()

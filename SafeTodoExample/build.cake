@@ -9,77 +9,54 @@ var TARGET = Argument("target", "Default");
 
 var IOS_SIM_NAME = EnvironmentVariable("IOS_SIM_NAME") ?? "iPhone X";
 var IOS_SIM_RUNTIME = EnvironmentVariable("IOS_SIM_RUNTIME") ?? "iOS 12.0";
-var IOS_PROJ = "./Tests/SafetodoExample.Tests/SafetodoExample.Tests.iOS/SafetodoExample.Tests.iOS.csproj";
-var IOS_BUNDLE_ID = "net.maidsafe.safetodoexampletests";
-var IOS_IPA_PATH = "./Tests/SafetodoExample.Tests/SafetodoExample.Tests.iOS/bin/iPhoneSimulator/Release/SafetodoExampleTestsiOS.app";
+var IOS_PROJ = "./Tests/SafetodoExample.Tests.iOS/SafeTodoExample.Tests.iOS.csproj";
+var IOS_BUNDLE_ID = "net.maidsafe.SafetodoExampleTests";
+var IOS_IPA_PATH = "./Tests/SafeTodoExample.Tests.iOS/bin/iPhoneSimulator/Release/SafetodoExample.Tests.IOS.app";
 var IOS_TEST_RESULTS_PATH = "./ios-test.xml";
+var IOS_TCP_LISTEN_HOST = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList.First(f => f.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
 
 var ANDROID_HOME = EnvironmentVariable("ANDROID_HOME");
-var ANDROID_PROJ = "./Tests/SafetodoExample.Tests/SafetodoExample.Tests.Android/SafetodoExample.Tests.Android.csproj";
+var ANDROID_PROJ = "./Tests/SafetodoExample.Tests.Android/SafetodoExample.Tests.Android.csproj";
 var ANDROID_TEST_RESULTS_PATH = "./android-test.xml";
 var ANDROID_AVD = "SafeAppEmulator";
-var ANDROID_PKG_NAME = "net.maidsafe.safetodoexampletests";
+var ANDROID_PKG_NAME = "net.maidsafe.SafetodoExampleTests";
 var ANDROID_EMU_TARGET = EnvironmentVariable("ANDROID_EMU_TARGET") ?? "system-images;android-28;google_apis;x86_64";
 var ANDROID_EMU_DEVICE = EnvironmentVariable("ANDROID_EMU_DEVICE") ?? "Nexus 5X";
+var ANDROID_TCP_LISTEN_HOST = System.Net.IPAddress.Any;
 
-var TCP_LISTEN_TIMEOUT = 1000;
-var TCP_LISTEN_PORT = 10578;
-var TCP_LISTEN_HOST = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName())
-        .AddressList.First(f => f.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).ToString();
+var TCP_LISTEN_PORT = 10500;
 
-Func<FilePath, Task> DownloadTcpTextAsync = (FilePath filename) =>
-    System.Threading.Tasks.Task.Run (() => {
-          var tcpListener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Any, (int)TCP_LISTEN_PORT);
-        tcpListener.Start();
-        var listening = true;
-
-        System.Threading.Tasks.Task.Run(() => {
-            // Sleep until timeout elapses or tcp listener stopped after a successful connection
-            var elapsed = 0;
-            while (elapsed <= TCP_LISTEN_TIMEOUT && listening) {
-                System.Threading.Thread.Sleep(1000);
-                elapsed++;
-            }
-
-            // If still listening, timeout elapsed, stop the listener
-            if (listening) {
-                tcpListener.Stop();
-                listening = false;
-            }
-        });
-
-        try {
-            var tcpClient = tcpListener.AcceptTcpClient();
-            var fileName = MakeAbsolute (filename).FullPath;
-
-            using (var file = System.IO.File.Open(fileName, System.IO.FileMode.Create))
-            using (var stream = tcpClient.GetStream())
-                stream.CopyTo(file);
-
-            tcpClient.Close();
-            tcpListener.Stop();
-            listening = false; 
-        } catch {
-            throw new Exception("Test results listener failed or timed out.");
+Func<IPAddress, int, string, Task> DownloadTcpTextAsync = (IPAddress TCP_LISTEN_HOST, int TCP_LISTEN_PORT, string RESULTS_PATH) => System.Threading.Tasks.Task.Run(() =>
+{
+    TcpListener server = null;
+    try
+    {
+        server = new TcpListener(TCP_LISTEN_HOST, TCP_LISTEN_PORT);
+        server.Start();
+        while (true)
+        {
+            TcpClient client = server.AcceptTcpClient();
+            NetworkStream stream = client.GetStream();
+            StreamReader data_in = new StreamReader(client.GetStream());
+            var result = data_in.ReadToEnd();
+            System.IO.File.AppendAllText(RESULTS_PATH, result);
+            client.Close();
+            break;
         }
-    });
-
-Action<FilePath, string> AddPlatformToTestResults = (FilePath testResultsFile, string platformName) => {
-    if (FileExists(testResultsFile)) {
-        var txt = FileReadText(testResultsFile);
-        txt = txt.Replace("<test-case name=\"SafetodoExample.Tests.Tests.", $"<test-case name=\"Tests.{platformName}.");
-        txt = txt.Replace("<test name=\"SafetodoExample.Tests.Tests.", $"<test name=\"Tests.{platformName}.");
-        txt = txt.Replace("name=\"Test collection for SafetodoExample.Tests.Tests.", $"name=\"Test collection for SafeTodoExample.{platformName}.");        
-        FileWriteText(testResultsFile, txt);
     }
-};
+    catch (SocketException e)
+    {
+        Information("SocketException: {0}", e);
+    }
+    finally
+    {
+        server.Stop();
+    }
+});
 
 Task ("Build-iOS")
     .Does (() =>
 {
-    // Setup the test listener config to be built into the app
-    FileWriteText((new FilePath(IOS_PROJ)).GetDirectory().CombineWithFilePath("tests.cfg"), $"{TCP_LISTEN_HOST}:{TCP_LISTEN_PORT}");
-
     // Nuget restore
     MSBuild (IOS_PROJ, c => {
         c.Configuration = "Release";
@@ -130,7 +107,7 @@ Task ("Run-iOS-Tests")
 
     // Start our Test Results TCP listener
     Information("Started TCP Test Results Listener on port: {0}", TCP_LISTEN_PORT);
-    var tcpListenerTask = DownloadTcpTextAsync(IOS_TEST_RESULTS_PATH);
+    var tcpListenerTask = DownloadTcpTextAsync(IOS_TCP_LISTEN_HOST, TCP_LISTEN_PORT, IOS_TEST_RESULTS_PATH);
 
     // Launch the IPA
     Information("Launching: {0}", IOS_BUNDLE_ID);
@@ -140,15 +117,13 @@ Task ("Run-iOS-Tests")
     Information("Waiting for tests...");
     tcpListenerTask.Wait ();
 
-    AddPlatformToTestResults(IOS_TEST_RESULTS_PATH, "iOS");
-
     // Close up simulators
     Information("Closing Simulator");
     ShutdownAllAppleSimulators ();
 })
 .ReportError(exception =>
 {  
-   Information(exception); 
+   Information(exception.Message); 
 });
 
 
@@ -246,27 +221,29 @@ Task ("Run-Android-Tests")
     });
 
     // Start the TCP Test results listener
-    Information("Started TCP Test Results Listener on port: {0}:{1}", TCP_LISTEN_HOST, TCP_LISTEN_PORT);
-    var tcpListenerTask = DownloadTcpTextAsync (ANDROID_TEST_RESULTS_PATH);
+    Information("Started TCP Test Results Listener on port: {0}", TCP_LISTEN_PORT);
+    var tcpListenerTask = DownloadTcpTextAsync (ANDROID_TCP_LISTEN_HOST, TCP_LISTEN_PORT, ANDROID_TEST_RESULTS_PATH);
 
     // Launch the app on the emulator
-    AdbShell ($"am start -n {ANDROID_PKG_NAME}/{ANDROID_PKG_NAME}.MainActivity --es HOST_IP {TCP_LISTEN_HOST} --ei HOST_PORT {TCP_LISTEN_PORT}", adbSettings);
+    AdbShell ($"am start -n {ANDROID_PKG_NAME}/{ANDROID_PKG_NAME}.MainActivity", adbSettings);
 
     // Wait for the test results to come back
     Information("Waiting for tests...");
     tcpListenerTask.Wait ();
 
-    AddPlatformToTestResults(ANDROID_TEST_RESULTS_PATH, "Android");
-
     // Close emulator
     emu.Kill();
+})
+.ReportError(exception =>
+{  
+   Information(exception.Message); 
 });
 
 
 Task("Default")
-	.IsDependentOn ("Run-Android-Tests")
-  .IsDependentOn ("Run-iOS-Tests")
+	//.IsDependentOn ("Run-Android-Tests")
+    .IsDependentOn ("Run-iOS-Tests")
 
-  .Does(() => { });
+    .Does(() => { });
 
 RunTarget(TARGET);
