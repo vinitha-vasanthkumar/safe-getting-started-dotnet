@@ -113,4 +113,8 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Import Project="$(MSBuildThisFileDirectory)..\..\..\CodeStyles.targets" />
+  <ItemGroup>
+    <Content Include="..\..\..\stylecop.json" Link="stylecop.json" />
+  </ItemGroup>
 </Project>

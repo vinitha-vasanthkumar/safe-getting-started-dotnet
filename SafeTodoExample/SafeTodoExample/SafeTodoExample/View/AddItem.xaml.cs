@@ -1,5 +1,4 @@
-﻿using Rg.Plugins.Popup.Extensions;
-using SafeTodoExample.Helpers;
+﻿using SafeTodoExample.Helpers;
 using SafeTodoExample.Model;
 using SafeTodoExample.ViewModel;
 using Xamarin.Forms;
@@ -8,7 +7,7 @@ using Xamarin.Forms.Xaml;
 namespace SafeTodoExample.View
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class AddItem
+    public partial class AddItem : ContentPage
     {
         private readonly TodoItem _item;
         private readonly bool _edit;
@@ -43,7 +42,22 @@ namespace SafeTodoExample.View
             }
 
             BindingContext = _viewModel;
-            MessageCenterSubscribe();
+            AddToolbarItems();
+        }
+
+        private void AddToolbarItems()
+        {
+            if (_edit)
+            {
+                ToolbarItems.Add(new ToolbarItem()
+                {
+                    Command = _viewModel.DeleteItemCommand,
+                    CommandParameter = _item,
+                    Icon = "deleteToolbarIcon",
+                    Text = "Delete"
+                });
+            }
+            ToolbarItems.Add(new ToolbarItem() { Command = _viewModel.SaveItemCommand, Icon = "checkToolbarIcon", Text = "Save" });
         }
 
         public void MessageCenterUnsubscribe()
@@ -58,14 +72,13 @@ namespace SafeTodoExample.View
                MessengerConstants.HidePopUp,
                async sender =>
                {
-                   await Navigation.PopPopupAsync();
+                   await Navigation.PopAsync();
                });
         }
 
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-            MessageCenterUnsubscribe();
         }
     }
 }

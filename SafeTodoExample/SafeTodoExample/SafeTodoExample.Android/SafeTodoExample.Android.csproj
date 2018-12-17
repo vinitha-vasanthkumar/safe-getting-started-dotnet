@@ -98,7 +98,6 @@
     <Folder Include="Resources\drawable-xhdpi\" />
     <Folder Include="Resources\drawable-xxhdpi\" />
     <Folder Include="Resources\drawable-xxxhdpi\" />
-    <Folder Include="Resources\drawable\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SafeTodoExample\SafeTodoExample.csproj">
@@ -110,5 +109,10 @@
   <Import Project="$(MSBuildThisFileDirectory)..\..\..\CodeStyles.targets" />
   <ItemGroup>
     <Content Include="..\..\..\stylecop.json" Link="stylecop.json" />
+    <AndroidResource Include="Resources\drawable\addIcon.png" />
+    <AndroidResource Include="Resources\drawable\checkIcon.png" />
+    <AndroidResource Include="Resources\drawable\checkToolbarIcon.png" />
+    <AndroidResource Include="Resources\drawable\deleteToolbarIcon.png" />
+    <AndroidResource Include="Resources\drawable\completeCheckIcon.png" />
   </ItemGroup>
 </Project>

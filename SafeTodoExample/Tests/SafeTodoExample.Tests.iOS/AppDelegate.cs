@@ -1,7 +1,6 @@
-﻿using Foundation;
+﻿using System.Linq;
+using Foundation;
 using NUnit.Runner.Services;
-using System.IO;
-using System.Linq;
 using UIKit;
 
 namespace NUnit.Runner.Tests
@@ -19,9 +18,8 @@ namespace NUnit.Runner.Tests
             // This will load all tests within the current project
             var nunit = new App
             {
-
                 // If you want to add tests in another assembly
-                //nunit.AddTestAssembly(typeof(MyTests).Assembly);
+                // nunit.AddTestAssembly(typeof(MyTests).Assembly);
 
                 // Available options for testing
                 Options = new TestOptions
@@ -31,11 +29,11 @@ namespace NUnit.Runner.Tests
                     AutoRun = true,
 
                     // If True, the application will terminate automatically after running the tests.
-                    //TerminateAfterExecution = true,
+                    // TerminateAfterExecution = true,
 
                     // Information about the tcp listener host and port.
                     // For now, send result as XML to the listening server.
-                    TcpWriterParameters = new TcpWriterInfo(_tcpListenHost  , 10500),
+                    TcpWriterParameters = new TcpWriterInfo(_tcpListenHost, 10500),
 
                     // Creates a NUnit Xml result file on the host file system using PCLStorage library.
                     // CreateXmlResultFile = true,

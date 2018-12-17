@@ -9,9 +9,9 @@ var TARGET = Argument("target", "Default");
 
 var IOS_SIM_NAME = EnvironmentVariable("IOS_SIM_NAME") ?? "iPhone X";
 var IOS_SIM_RUNTIME = EnvironmentVariable("IOS_SIM_RUNTIME") ?? "iOS 12.0";
-var IOS_PROJ = "./Tests/SafetodoExample.Tests.iOS/SafeTodoExample.Tests.iOS.csproj";
+var IOS_PROJ = "./Tests/SafeTodoExample.Tests.iOS/SafeTodoExample.Tests.iOS.csproj";
 var IOS_BUNDLE_ID = "net.maidsafe.SafetodoExampleTests";
-var IOS_IPA_PATH = "./Tests/SafeTodoExample.Tests.iOS/bin/iPhoneSimulator/Release/SafetodoExample.Tests.IOS.app";
+var IOS_IPA_PATH = "./Tests/SafeTodoExample.Tests.iOS/bin/iPhoneSimulator/Release/NunitTests.app";
 var IOS_TEST_RESULTS_PATH = "./ios-test.xml";
 var IOS_TCP_LISTEN_HOST = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList.First(f => f.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
 
@@ -241,9 +241,8 @@ Task ("Run-Android-Tests")
 
 
 Task("Default")
-	//.IsDependentOn ("Run-Android-Tests")
+		.IsDependentOn ("Run-Android-Tests")
     .IsDependentOn ("Run-iOS-Tests")
-
     .Does(() => { });
 
 RunTarget(TARGET);

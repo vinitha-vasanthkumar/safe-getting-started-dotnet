@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Rg.Plugins.Popup.Extensions;
 using SafeTodoExample.Helpers;
 using SafeTodoExample.Model;
 using SafeTodoExample.ViewModel.Base;
@@ -18,9 +18,7 @@ namespace SafeTodoExample.ViewModel
 
         public ICommand RefreshItemCommand { get; }
 
-        public ICommand UpdateItemCommand { get; }
-
-        public ICommand DeleteItemCommand { get; }
+        public ICommand MarkCompletedCommand { get; private set; }
 
         private ObservableCollection<TodoItem> _todoItems;
 
@@ -35,9 +33,25 @@ namespace SafeTodoExample.ViewModel
             AddItemCommand = new Command(async () => await OnAddItemCommand());
             LogoutCommand = new Command(async () => await OnLogoutCommandAsync());
             RefreshItemCommand = new Command(async () => await OnRefreshItemsCommand());
-            UpdateItemCommand = new Command(async (item) => await OnUpdateItemsCommand((TodoItem)item));
-            DeleteItemCommand = new Command(async (item) => await OnDeleteItemsCommand((TodoItem)item));
+            MarkCompletedCommand = new Command(async (item) => await OnCompleteItemsCommand((TodoItem)item));
             ToDoItems = new ObservableCollection<TodoItem>();
+        }
+
+        private async Task OnCompleteItemsCommand(TodoItem item)
+        {
+            try
+            {
+                using (Acr.UserDialogs.UserDialogs.Instance.Loading("Updating task"))
+                {
+                    item.IsCompleted = !item.IsCompleted;
+                    await AppService.UpdateItemAsync(item);
+                    await OnRefreshItemsCommand();
+                }
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", $"Add Item Failed: {ex.Message}", "OK");
+            }
         }
 
         public async Task OnRefreshItemsCommand()
@@ -45,7 +59,8 @@ namespace SafeTodoExample.ViewModel
             IsBusy = true;
             try
             {
-                ToDoItems = await AppService.GetItemAsync();
+                var todoItem = await AppService.GetItemAsync();
+                ToDoItems = new ObservableCollection<TodoItem>(todoItem.OrderByDescending(i => i.IsCompleted).Reverse());
             }
             catch (Exception ex)
             {
@@ -57,38 +72,18 @@ namespace SafeTodoExample.ViewModel
 
         private async Task OnAddItemCommand()
         {
-            await Application.Current.MainPage.Navigation.PushPopupAsync(new View.AddItem());
+            await Application.Current.MainPage.Navigation.PushAsync(new View.AddItem());
         }
 
         private async Task OnLogoutCommandAsync()
         {
-            await AppService.LogoutAsync();
-            MessagingCenter.Send(this, MessengerConstants.NavigateToAuthPage);
-        }
-
-        public async Task OnDeleteItemsCommand(TodoItem item)
-        {
             var result = await Application.Current.MainPage.DisplayAlert(
-                "Delete item", "Are you sure you want to delete this item from list", "Delete", "Cancel");
+               "Logout", "Are you sure you want to logout.", "Yes", "No");
             if (result)
             {
-                DialogHelper.ShowToast("Deleting entry...", DialogType.Information);
-                await DeleteItemAsync(item);
-                if (RefreshItemCommand.CanExecute(null))
-                {
-                    RefreshItemCommand.Execute(null);
-                }
+                await AppService.LogoutAsync();
+                MessagingCenter.Send(this, MessengerConstants.NavigateToAuthPage);
             }
-        }
-
-        public async Task DeleteItemAsync(TodoItem item)
-        {
-            await AppService.DeleteItemAsync(item);
-        }
-
-        private async Task OnUpdateItemsCommand(TodoItem item)
-        {
-            await Application.Current.MainPage.Navigation.PushPopupAsync(new View.AddItem(item));
         }
     }
 }

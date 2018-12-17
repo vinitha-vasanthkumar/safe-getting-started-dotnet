@@ -1,53 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<pages:PopupPage xmlns="http://xamarin.com/schemas/2014/forms"
-                 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-                 x:Class="SafeTodoExample.View.AddItem"
-                 xmlns:pages="clr-namespace:Rg.Plugins.Popup.Pages;assembly=Rg.Plugins.Popup"
-                 CloseWhenBackgroundIsClicked="True"
-                 BackgroundColor="#B3000000">
-    <ScrollView>
-        <Grid RowSpacing="0" ColumnSpacing="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"></ColumnDefinition>
-                <ColumnDefinition Width="8*"></ColumnDefinition>
-                <ColumnDefinition Width="1*"></ColumnDefinition>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="3*"></RowDefinition>
-                <RowDefinition Height="4*"></RowDefinition>
-                <RowDefinition Height="3*"></RowDefinition>
-            </Grid.RowDefinitions>
-
-            <Frame Grid.Column="1" Grid.Row="1" Padding="0" BackgroundColor="White" HasShadow="True" OutlineColor="#E6E6E6" Opacity="100"
-                HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
-                <Grid RowSpacing="1" ColumnSpacing="0" Margin="5" BackgroundColor="White">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <StackLayout Spacing="2" Grid.Row="0" Margin="5" VerticalOptions="Fill">
-                        <Label Text="Add new Item" TextColor="Black" HorizontalTextAlignment="Center" FontSize="Medium" Margin="5"/>
-
-                        <Label Text="Title" TextColor="DarkGray"/>
-                        <Entry Text="{Binding Title}" >
-                            <Entry.Triggers>
-                                <DataTrigger TargetType="Entry" Binding="{Binding Edit}" Value="True">
-                                    <Setter Property="IsEnabled" Value="False" />
-                                </DataTrigger>
-                            </Entry.Triggers>
-                        </Entry>
-
-                        <Label Text="Detail" TextColor="DarkGray" Margin="0,10,0,0"/>
-                        <Editor Text="{Binding Details}"/>
-
-                    </StackLayout>
-                    <StackLayout Grid.Row="1" Orientation="Horizontal" HorizontalOptions="Center" HeightRequest="50">
-                        <Button Text="OK" Margin="5" Command="{Binding AddItemCommand}"/>
-                        <Button Text="CANCEL" Margin="5"  Command="{Binding CloseDialogCommand}"/>
-                    </StackLayout>
-                </Grid>
-            </Frame>
-        </Grid>
-    </ScrollView>
-</pages:PopupPage>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SafeTodoExample.View.AddItem"
+             BackgroundColor="#F5F5F5"
+             xmlns:controls="clr-namespace:SafeTodoExample.Controls"
+             Title="{Binding Title}"
+             Padding="10">
+    <controls:CardView BackgroundColor="White">
+        <ScrollView>
+            <StackLayout>
+                <StackLayout Spacing="5" Margin="5" VerticalOptions="Fill">
+                    <Label Text="{Binding CreatedOn, StringFormat='Created On: {0}'}" FontSize="Medium" IsVisible="{Binding Edit}" />
+                    <Entry Text="{Binding Title}" Placeholder="Title" PlaceholderColor="DarkGray" MaxLength="30">
+                        <Entry.Triggers>
+                            <DataTrigger TargetType="Entry" Binding="{Binding Edit}" Value="True">
+                                <Setter Property="IsEnabled" Value="False" />
+                            </DataTrigger>
+                        </Entry.Triggers>
+                    </Entry>
+                    <Editor Text="{Binding Details}" Placeholder="Detail" PlaceholderColor="DarkGray" HeightRequest="150" MaxLength="150"/>
+                </StackLayout>
+            </StackLayout>
+        </ScrollView>
+    </controls:CardView>
+</ContentPage>

@@ -173,5 +173,10 @@
   <Import Project="$(MSBuildThisFileDirectory)..\..\..\CodeStyles.targets" />
   <ItemGroup>
     <Content Include="..\..\..\stylecop.json" Link="stylecop.json" />
+    <BundleResource Include="Resources\completeCheckIcon.png" />
+    <BundleResource Include="Resources\deleteToolbarIcon.png" />
+    <BundleResource Include="Resources\checkIcon.png" />
+    <BundleResource Include="Resources\checkToolbarIcon.png" />
+    <BundleResource Include="Resources\addIcon.png" />
   </ItemGroup>
 </Project>

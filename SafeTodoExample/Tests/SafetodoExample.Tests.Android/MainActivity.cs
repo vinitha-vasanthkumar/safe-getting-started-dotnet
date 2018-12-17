@@ -21,9 +21,8 @@ namespace SafetodoExample.Tests.Android
             // This will load all tests within the current project
             var nunit = new NUnit.Runner.App
             {
-
                 // If you want to add tests in another assembly
-                //nunit.AddTestAssembly(typeof(MyTests).Assembly);
+                // nunit.AddTestAssembly(typeof(MyTests).Assembly);
 
                 // Available options for testing
                 Options = new TestOptions
@@ -33,7 +32,7 @@ namespace SafetodoExample.Tests.Android
                     AutoRun = true,
 
                     // If True, the application will terminate automatically after running the tests.
-                    //TerminateAfterExecution = true,
+                    // TerminateAfterExecution = true,
 
                     // Information about the tcp listener host and port.
                     // For now, send result as XML to the listening server.
@@ -51,4 +50,3 @@ namespace SafetodoExample.Tests.Android
         }
     }
 }
-

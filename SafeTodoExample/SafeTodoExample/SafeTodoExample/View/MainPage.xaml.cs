@@ -30,7 +30,7 @@ namespace SafeTodoExample.View
                MessengerConstants.NavigateToItemPage,
                sender =>
                {
-                   Application.Current.MainPage = new NavigationPage(new ToDoItemsPage());
+                   Navigation.PushAsync(new ToDoItemsPage());
                });
 
             MessagingCenter.Subscribe<AppService>(
@@ -38,7 +38,7 @@ namespace SafeTodoExample.View
                MessengerConstants.NavigateToItemPage,
                sender =>
                {
-                   Application.Current.MainPage = new NavigationPage(new ToDoItemsPage());
+                   Navigation.PushAsync(new ToDoItemsPage());
                });
         }
 

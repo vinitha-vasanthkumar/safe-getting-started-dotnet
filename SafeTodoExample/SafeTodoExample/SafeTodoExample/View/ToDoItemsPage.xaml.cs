@@ -1,6 +1,6 @@
 ﻿using SafeTodoExample.Helpers;
+using SafeTodoExample.Model;
 using SafeTodoExample.ViewModel;
-
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -14,6 +14,7 @@ namespace SafeTodoExample.View
         public ToDoItemsPage()
         {
             InitializeComponent();
+            NavigationPage.SetHasBackButton(this, false);
         }
 
         protected override async void OnAppearing()
@@ -35,7 +36,9 @@ namespace SafeTodoExample.View
         private void TodoItemListView_ItemTapped(object sender, ItemTappedEventArgs e)
         {
             var listview = (ListView)sender;
+            var item = listview.SelectedItem as TodoItem;
             listview.SelectedItem = null;
+            Navigation.PushAsync(new AddItem(item));
         }
 
         public void MessageCenterUnsubscribe()
@@ -65,7 +68,7 @@ namespace SafeTodoExample.View
                MessengerConstants.NavigateToAuthPage,
                sender =>
                {
-                   Application.Current.MainPage = new MainPage();
+                   Navigation.PopToRootAsync();
                });
         }
 

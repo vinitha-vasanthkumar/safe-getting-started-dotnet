@@ -93,6 +93,7 @@ namespace SafeTodoExample.Service
             catch (Exception ex)
             {
                 Debug.WriteLine("Error : " + ex.Message);
+                throw ex;
             }
             _mDataAvailable = true;
         }
@@ -117,13 +118,14 @@ namespace SafeTodoExample.Service
             catch (Exception ex)
             {
                 Debug.WriteLine("Error : " + ex.Message);
+                throw ex;
             }
             _newMdInfoFlag = false;
         }
 
-        public async Task<ObservableCollection<TodoItem>> GetItemAsync()
+        public async Task<List<TodoItem>> GetItemAsync()
         {
-            ObservableCollection<TodoItem> messages = new ObservableCollection<TodoItem>();
+            List<TodoItem> messages = new List<TodoItem>();
             try
             {
                 if (!_mDataAvailable)
@@ -138,12 +140,11 @@ namespace SafeTodoExample.Service
                     foreach (MDataEntry item in entries)
                     {
                         var plainkey = item.Key.Key;
-                        var vl = await _session.MData.GetValueAsync(_mDataInfo, item.Key.Key);
-                        var plainvalue = vl.Item1;
-                        Debug.WriteLine("Key : {0}, Value : {1}", plainkey.ToUtfString(), plainvalue.ToUtfString());
-                        if (plainvalue.Count > 0)
+                        var value = await _session.MData.GetValueAsync(_mDataInfo, item.Key.Key);
+                        if (value.Item1.Count > 0)
                         {
-                            messages.Add(new TodoItem() { Title = plainkey.ToUtfString(), Detail = plainvalue.ToUtfString() });
+                            var deserializedValue = value.Item1.Deserialize();
+                            messages.Add(deserializedValue as TodoItem);
                         }
                     }
                 }
@@ -151,6 +152,7 @@ namespace SafeTodoExample.Service
             catch (Exception ex)
             {
                 Debug.WriteLine("Error : " + ex.Message);
+                throw ex;
             }
             return messages;
         }
@@ -168,7 +170,7 @@ namespace SafeTodoExample.Service
                         {
                             await _session.MDataPermissions.InsertAsync(
                               permissions, appKey, new PermissionSet { Insert = true, Delete = true, Update = true, Read = true });
-                            await _session.MDataEntries.InsertAsync(entriesHandle, todoItem.Title.ToUtfBytes(), todoItem.Detail.ToUtfBytes());
+                            await _session.MDataEntries.InsertAsync(entriesHandle, todoItem.Title.ToUtfBytes(), todoItem.Serialize());
                             await _session.MData.PutAsync(_mDataInfo, permissions, entriesHandle);
                         }
                         await StoreMdInfoAsync();
@@ -178,7 +180,7 @@ namespace SafeTodoExample.Service
                 {
                     using (NativeHandle entriesHandle = await _session.MDataEntryActions.NewAsync())
                     {
-                        await _session.MDataEntryActions.InsertAsync(entriesHandle, todoItem.Title.ToUtfBytes(), todoItem.Detail.ToUtfBytes());
+                        await _session.MDataEntryActions.InsertAsync(entriesHandle, todoItem.Title.ToUtfBytes(), todoItem.Serialize());
                         await _session.MData.MutateEntriesAsync(_mDataInfo, entriesHandle);
                     }
                 }
@@ -186,6 +188,7 @@ namespace SafeTodoExample.Service
             catch (Exception ex)
             {
                 Debug.WriteLine("Error : " + ex.Message);
+                throw ex;
             }
         }
 
@@ -197,13 +200,14 @@ namespace SafeTodoExample.Service
                 {
                     var keyToUpdate = todoItem.Title.ToUtfBytes();
                     var value = await _session.MData.GetValueAsync(_mDataInfo, keyToUpdate);
-                    await _session.MDataEntryActions.UpdateAsync(entriesHandle, keyToUpdate, todoItem.Detail.ToUtfBytes(), value.Item2 + 1);
+                    await _session.MDataEntryActions.UpdateAsync(entriesHandle, keyToUpdate, todoItem.Serialize(), value.Item2 + 1);
                     await _session.MData.MutateEntriesAsync(_mDataInfo, entriesHandle);
                 }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine("Error : " + ex.Message);
+                throw ex;
             }
         }
 
@@ -222,6 +226,7 @@ namespace SafeTodoExample.Service
             catch (Exception ex)
             {
                 Debug.WriteLine("Error : " + ex.Message);
+                throw ex;
             }
         }
 
@@ -261,13 +266,13 @@ namespace SafeTodoExample.Service
                 {
                     Debug.WriteLine("Received Auth Granted from Authenticator");
                     AuthIpcMsg ipcMsg = decodeResult as AuthIpcMsg;
+
                     if (ipcMsg != null)
                     {
                         _session = await Session.AppRegisteredAsync(AppId, ipcMsg.AuthGranted);
+                        DialogHelper.ShowToast("Auth Granted", DialogType.Success);
+                        MessagingCenter.Send(this, MessengerConstants.NavigateToItemPage);
                     }
-
-                    DialogHelper.ShowToast("Auth Granted", DialogType.Success);
-                    MessagingCenter.Send(this, MessengerConstants.NavigateToItemPage);
                 }
                 else
                 {

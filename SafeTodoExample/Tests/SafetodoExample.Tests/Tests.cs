@@ -68,7 +68,8 @@ namespace SafetodoExample.Tests
                     });
                 addItemViewModel.Title = Misc.GetRandomString(10);
                 addItemViewModel.Details = Misc.GetRandomString(10);
-                await addItemViewModel.OnAddItemCommand();
+
+                await addItemViewModel.OnSaveItemCommand();
                 Assert.True(messageReceived, "Adding entry failed");
 
                 // Test fetch todo items
@@ -79,7 +80,8 @@ namespace SafetodoExample.Tests
                 messageReceived = false;
                 addItemViewModel.Title = Misc.GetRandomString(10);
                 addItemViewModel.Details = Misc.GetRandomString(10);
-                await addItemViewModel.OnAddItemCommand();
+
+                await addItemViewModel.OnSaveItemCommand();
                 Assert.True(messageReceived, "Adding entry failed");
 
                 // Test fetch todo items
@@ -88,7 +90,8 @@ namespace SafetodoExample.Tests
                 Assert.AreEqual(2, todoItemsViewModel.ToDoItems.Count);
 
                 // Test delete todo item
-                await todoItemsViewModel.DeleteItemAsync(todoItemsViewModel.ToDoItems[0]);
+                await addItemViewModel.DeleteItemAsync(todoItemsViewModel.ToDoItems[0]);
+
                 await todoItemsViewModel.OnRefreshItemsCommand();
                 Assert.AreEqual(1, todoItemsViewModel.ToDoItems.Count);
 
@@ -96,7 +99,8 @@ namespace SafetodoExample.Tests
                 var updateViewModel = new AddItemViewModel(todoItemsViewModel.ToDoItems[0], true);
                 var newDetails = "UpdatedDetails";
                 updateViewModel.Details = newDetails;
-                await updateViewModel.OnAddItemCommand();
+
+                await updateViewModel.OnSaveItemCommand();
                 await todoItemsViewModel.OnRefreshItemsCommand();
                 Assert.AreEqual(1, todoItemsViewModel.ToDoItems.Count);
                 Assert.AreEqual(newDetails, todoItemsViewModel.ToDoItems[0].Detail);

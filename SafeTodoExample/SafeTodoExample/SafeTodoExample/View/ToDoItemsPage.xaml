@@ -3,28 +3,62 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="SafeTodoExample.View.ToDoItemsPage"
              x:Name="TodoItemPage"
-             Title="Todo Items">
+             xmlns:controls="clr-namespace:SafeTodoExample.Controls"
+             Title="SAFE Todo List" BackgroundColor="#F5F5F5" Padding="5">
     <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Add Item" Command="{Binding AddItemCommand}" />
-        <ToolbarItem Text="Refresh" Order="Secondary" Command="{Binding RefreshItemCommand}" />
-        <ToolbarItem Text="Logout" Order="Secondary" Command="{Binding LogoutCommand}" />
+        <ToolbarItem Text="Add Item" Command="{Binding AddItemCommand}" Icon="addIcon"/>
+        <ToolbarItem Text="Refresh" Order="Secondary" Command="{Binding RefreshItemCommand}"/>
+        <ToolbarItem Text="Logout" Order="Secondary" Command="{Binding LogoutCommand}"/>
     </ContentPage.ToolbarItems>
     <ContentPage.Content>
         <StackLayout>
-            <ListView ItemsSource="{Binding ToDoItems}" x:Name="TodoItemListView">
+            <Label Text="Nothing todo!" FontSize="Medium" IsVisible="False" HorizontalOptions="Center" VerticalOptions="Center">
+                <Label.Triggers>
+                    <DataTrigger TargetType="Label"
+                             Binding="{Binding Source={x:Reference TodoItemListView}, Path=ItemsSource.Count}" 
+                             Value="0">
+                        <Setter Property="IsVisible" Value="True" />
+                    </DataTrigger>
+                </Label.Triggers>
+            </Label>
+            <ListView ItemsSource="{Binding ToDoItems}" 
+                      x:Name="TodoItemListView" 
+                      HasUnevenRows="True" 
+                      SeparatorVisibility="None" 
+                      IsPullToRefreshEnabled="True"
+                      RefreshCommand="{Binding RefreshItemCommand}"
+                      IsRefreshing="{Binding IsBusy}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <TextCell Text="{Binding Title}" Detail="{Binding Detail}">
-                            <TextCell.ContextActions>
-                                <MenuItem Text="Update"
-                                          Command="{Binding Path=BindingContext.UpdateItemCommand, Source={x:Reference Name=TodoItemPage}}"
-      CommandParameter="{Binding .}" />
-                                <MenuItem Text="Delete"
-                                          Command="{Binding Path=BindingContext.DeleteItemCommand, Source={x:Reference Name=TodoItemPage}}"
-      CommandParameter="{Binding .}" />
-                            </TextCell.ContextActions>
-                        </TextCell>
-
+                        <ViewCell>
+                            <controls:CardView Margin="5" Padding="0" BackgroundColor="White">
+                                <Grid Padding="10" HeightRequest="50">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Grid.Column="0" Text="{Binding Title}" VerticalOptions="Center" TextDecorations="None">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsCompleted}" Value="True">
+                                                <Setter Property="TextDecorations" Value="Strikethrough"/>
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                    <Image Grid.Column="1" Source="checkIcon" Aspect="AspectFit" HeightRequest="20">
+                                        <Image.GestureRecognizers>
+                                            <TapGestureRecognizer 
+                                                        Command="{Binding Path=BindingContext.MarkCompletedCommand, Source={x:Reference Name=TodoItemPage}}"
+                                                        CommandParameter="{Binding .}"/>
+                                        </Image.GestureRecognizers>
+                                        <Image.Triggers>
+                                            <DataTrigger TargetType="Image" Binding="{Binding IsCompleted}" Value="True">
+                                                <Setter Property="Source" Value="completeCheckIcon"/>
+                                            </DataTrigger>
+                                        </Image.Triggers>
+                                    </Image>
+                                </Grid>
+                            </controls:CardView>
+                        </ViewCell>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
