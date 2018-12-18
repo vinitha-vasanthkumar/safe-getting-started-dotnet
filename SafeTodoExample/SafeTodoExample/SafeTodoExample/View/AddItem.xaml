@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SafeTodoExample.View.AddItem"
+             BackgroundColor="#F5F5F5"
+             xmlns:controls="clr-namespace:SafeTodoExample.Controls"
+             Title="{Binding Title}"
+             Padding="10">
+    <controls:CardView BackgroundColor="White">
+        <ScrollView>
+            <StackLayout>
+                <StackLayout Spacing="5" Margin="5" VerticalOptions="Fill">
+                    <Label Text="{Binding CreatedOn, StringFormat='Created On: {0}'}" FontSize="Medium" IsVisible="{Binding Edit}" />
+                    <Entry Text="{Binding Title}" Placeholder="Title" PlaceholderColor="DarkGray" MaxLength="30">
+                        <Entry.Triggers>
+                            <DataTrigger TargetType="Entry" Binding="{Binding Edit}" Value="True">
+                                <Setter Property="IsEnabled" Value="False" />
+                            </DataTrigger>
+                        </Entry.Triggers>
+                    </Entry>
+                    <Editor Text="{Binding Details}" Placeholder="Detail" PlaceholderColor="DarkGray" HeightRequest="150" MaxLength="150"/>
+                </StackLayout>
+            </StackLayout>
+        </ScrollView>
+    </controls:CardView>
+</ContentPage>
