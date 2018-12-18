@@ -84,15 +84,15 @@ namespace SharedDemoCode.Network
         {
             Console.WriteLine("\nEntries in Mutable Data:");
             var entries = await _mdOperations.GetEntries();
+            if (entries.Count == 0)
+            {
+                Console.WriteLine("\n0 entries.");
+            }
+
             foreach (var entry in entries)
             {
                 var key = entry.Key.Key;
                 var value = entry.Value.Content;
-
-                if (value.Count == 0)
-                {
-                    continue;
-                }
 
                 Console.WriteLine("Key : " + key.ToUtfString());
                 Console.WriteLine("Value : " + value.ToUtfString());

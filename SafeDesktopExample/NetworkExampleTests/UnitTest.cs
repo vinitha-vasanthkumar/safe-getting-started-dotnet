@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using App;
 using App.Network;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SafeApp.Utilities;
@@ -57,7 +56,7 @@ namespace NetworkExampleTests
                     enteries.Where(e => e.Key.Key.ToUtfString() == key).FirstOrDefault().Value.Content.ToUtfString());
 
                 await mdOperations.DeleteEntry(key);
-                enteries = (await mdOperations.GetEntries()).Where(e => e.Value.Content.Count != 0).ToList();
+                enteries = await mdOperations.GetEntries();
                 Assert.AreEqual(1, enteries.Count);
             }
             catch (Exception ex)

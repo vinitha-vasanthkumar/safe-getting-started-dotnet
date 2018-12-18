@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using SafeApp;
 using SafeApp.Utilities;
@@ -30,7 +31,7 @@ namespace App.Network
             {
                 Console.WriteLine("\nCreating new mutable data");
                 const ulong tagType = 15010;
-                _mdinfo = await _session.MDataInfoActions.RandomPublicAsync(tagType);
+                _mdinfo = await _session.MDataInfoActions.RandomPrivateAsync(tagType);
 
                 var mDataPermissionSet = new PermissionSet { Insert = true, ManagePermissions = true, Read = true, Update = true, Delete = true };
                 using (var permissionsH = await _session.MDataPermissions.NewAsync())
@@ -57,9 +58,9 @@ namespace App.Network
             {
                 using (var entryActionsH = await _session.MDataEntryActions.NewAsync())
                 {
-                    var encodedKey = key.ToUtfBytes();
-                    var encodedValue = value.ToUtfBytes();
-                    await _session.MDataEntryActions.InsertAsync(entryActionsH, encodedKey, encodedValue);
+                    var encryptedKey = await _session.MDataInfoActions.EncryptEntryKeyAsync(_mdinfo, key.ToUtfBytes());
+                    var encryptedValue = await _session.MDataInfoActions.EncryptEntryValueAsync(_mdinfo, value.ToUtfBytes());
+                    await _session.MDataEntryActions.InsertAsync(entryActionsH, encryptedKey, encryptedValue);
                     await _session.MData.MutateEntriesAsync(_mdinfo, entryActionsH);
                 }
                 Console.WriteLine("Entry Added");
@@ -77,7 +78,20 @@ namespace App.Network
             {
                 using (var entriesHandle = await _session.MDataEntries.GetHandleAsync(_mdinfo))
                 {
-                    entries = await _session.MData.ListEntriesAsync(entriesHandle);
+                    var encryptedEntries = await _session.MData.ListEntriesAsync(entriesHandle);
+                    foreach (var entry in encryptedEntries)
+                    {
+                        if (entry.Value.Content.Count != 0)
+                        {
+                            var decryptedKey = await _session.MDataInfoActions.DecryptAsync(_mdinfo, entry.Key.Key.ToList());
+                            var decryptedValue = await _session.MDataInfoActions.DecryptAsync(_mdinfo, entry.Value.Content.ToList());
+                            entries.Add(new MDataEntry()
+                            {
+                                Key = new MDataKey() { Key = decryptedKey },
+                                Value = new MDataValue { Content = decryptedValue, EntryVersion = entry.Value.EntryVersion }
+                            });
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -91,8 +105,8 @@ namespace App.Network
         {
             try
             {
-                var keyToUpdate = key.ToUtfBytes();
-                var newValueToUpdate = newValue.ToUtfBytes();
+                var keyToUpdate = await _session.MDataInfoActions.EncryptEntryKeyAsync(_mdinfo, key.ToUtfBytes());
+                var newValueToUpdate = await _session.MDataInfoActions.EncryptEntryValueAsync(_mdinfo, newValue.ToUtfBytes());
                 using (var entriesHandle = await _session.MDataEntryActions.NewAsync())
                 {
                     var value = await _session.MData.GetValueAsync(_mdinfo, keyToUpdate);
@@ -110,7 +124,7 @@ namespace App.Network
         {
             try
             {
-                var keyToDelete = key.ToUtfBytes();
+                var keyToDelete = await _session.MDataInfoActions.EncryptEntryKeyAsync(_mdinfo, key.ToUtfBytes());
                 using (var entriesHandle = await _session.MDataEntryActions.NewAsync())
                 {
                     var value = await _session.MData.GetValueAsync(_mdinfo, keyToDelete);
