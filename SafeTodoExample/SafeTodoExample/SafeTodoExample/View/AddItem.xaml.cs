@@ -47,17 +47,20 @@ namespace SafeTodoExample.View
 
         private void AddToolbarItems()
         {
-            if (_edit)
+            if (ToolbarItems.Count == 0)
             {
-                ToolbarItems.Add(new ToolbarItem()
+                if (_edit)
                 {
-                    Command = _viewModel.DeleteItemCommand,
-                    CommandParameter = _item,
-                    Icon = "deleteToolbarIcon",
-                    Text = "Delete"
-                });
+                    ToolbarItems.Add(new ToolbarItem()
+                    {
+                        Command = _viewModel.DeleteItemCommand,
+                        CommandParameter = _item,
+                        Icon = "deleteToolbarIcon",
+                        Text = "Delete"
+                    });
+                }
+                ToolbarItems.Add(new ToolbarItem() { Command = _viewModel.SaveItemCommand, Icon = "checkToolbarIcon", Text = "Save" });
             }
-            ToolbarItems.Add(new ToolbarItem() { Command = _viewModel.SaveItemCommand, Icon = "checkToolbarIcon", Text = "Save" });
         }
 
         public void MessageCenterUnsubscribe()

@@ -4,6 +4,7 @@ using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
+using Android.Widget;
 using SafeTodoExample.Service;
 using Xamarin.Forms;
 
@@ -23,6 +24,8 @@ namespace SafeTodoExample.Droid
     public class MainActivity : global::Xamarin.Forms.Platform.Android.FormsAppCompatActivity
     {
         private AppService AppService => DependencyService.Get<AppService>();
+
+        long _lastPress;
 
         protected override void OnCreate(Bundle bundle)
         {
@@ -68,6 +71,22 @@ namespace SafeTodoExample.Droid
                       System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}");
                   }
               });
+        }
+
+        public override void OnBackPressed()
+        {
+            long currentTime = DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond;
+
+            if (currentTime - _lastPress > 5000)
+            {
+                Toast.MakeText(this, "Press back again to exit", ToastLength.Short).Show();
+                _lastPress = currentTime;
+            }
+            else
+            {
+                base.OnBackPressed();
+                Java.Lang.JavaSystem.Exit(0);
+            }
         }
     }
 }

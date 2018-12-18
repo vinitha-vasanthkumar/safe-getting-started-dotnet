@@ -68,7 +68,7 @@ namespace SafeTodoExample.View
                MessengerConstants.NavigateToAuthPage,
                sender =>
                {
-                   Navigation.PopToRootAsync();
+                   Application.Current.MainPage = new NavigationPage(new MainPage());
                });
         }
 

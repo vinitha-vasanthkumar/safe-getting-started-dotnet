@@ -30,8 +30,6 @@ namespace SafeTodoExample.ViewModel
 
         public ICommand CloseDialogCommand { get; private set; }
 
-        public ICommand UpdateItemCommand { get; private set; }
-
         public ICommand DeleteItemCommand { get; private set; }
 
         public AddItemViewModel()
@@ -52,7 +50,6 @@ namespace SafeTodoExample.ViewModel
         private void InitializeCommands()
         {
             SaveItemCommand = new Command(async () => await OnSaveItemCommand());
-            UpdateItemCommand = new Command(async (item) => await OnUpdateItemsCommand((TodoItem)item));
             DeleteItemCommand = new Command(async (item) => await OnDeleteItemsCommand((TodoItem)item));
             CloseDialogCommand = new Command(async () => await OnCloseDialogCommand());
         }
@@ -101,27 +98,29 @@ namespace SafeTodoExample.ViewModel
 
         public async Task OnDeleteItemsCommand(TodoItem item)
         {
-            var result = await Application.Current.MainPage.DisplayAlert(
-                "Delete item", "Are you sure you want to delete this item from list", "Delete", "Cancel");
-            if (result)
+            try
             {
-                using (Acr.UserDialogs.UserDialogs.Instance.Loading("Deleting entry"))
+                var result = await Application.Current.MainPage.DisplayAlert(
+                    "Delete item", "Are you sure you want to delete this item from list", "Delete", "Cancel");
+                if (result)
                 {
-                    await DeleteItemAsync(item);
-                    await Application.Current.MainPage.Navigation.PopAsync();
+                    using (Acr.UserDialogs.UserDialogs.Instance.Loading("Deleting entry"))
+                    {
+                        await DeleteItemAsync(item);
+                        await Application.Current.MainPage.Navigation.PopAsync();
+                    }
+                    MessagingCenter.Send(this, MessengerConstants.RefreshItemList);
                 }
-                MessagingCenter.Send(this, MessengerConstants.RefreshItemList);
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", $"Delete Item Failed: {ex.Message}", "OK");
             }
         }
 
         public async Task DeleteItemAsync(TodoItem item)
         {
             await AppService.DeleteItemAsync(item);
-        }
-
-        private async Task OnUpdateItemsCommand(TodoItem item)
-        {
-            await Application.Current.MainPage.Navigation.PushAsync(new View.AddItem(item));
         }
     }
 }
