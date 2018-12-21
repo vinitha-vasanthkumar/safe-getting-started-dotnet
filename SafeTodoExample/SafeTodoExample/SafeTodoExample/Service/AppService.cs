@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using SafeApp;
 using SafeApp.Utilities;
@@ -75,13 +76,13 @@ namespace SafeTodoExample.Service
         {
             try
             {
-                MDataInfo appCont = await _session.AccessContainer.GetMDataInfoAsync("apps/" + AppId);
-                List<byte> cipherBytes = await _session.MDataInfoActions.EncryptEntryKeyAsync(appCont, mdByteList.ToUtfBytes());
-                (List<byte>, ulong) content = await _session.MData.GetValueAsync(appCont, cipherBytes);
-                if (content.Item1 != null)
+                var appContainerMDataInfo = await _session.AccessContainer.GetMDataInfoAsync("apps/" + AppId);
+                var encrypedAppKey = await _session.MDataInfoActions.EncryptEntryKeyAsync(appContainerMDataInfo, mdByteList.ToUtfBytes());
+                (List<byte>, ulong) encryptedValue = await _session.MData.GetValueAsync(appContainerMDataInfo, encrypedAppKey);
+                if (encryptedValue.Item1 != null)
                 {
-                    List<byte> plainBytes = await _session.MDataInfoActions.DecryptAsync(appCont, content.Item1);
-                    _mDataInfo = await _session.MDataInfoActions.DeserialiseAsync(plainBytes);
+                    var plainValue = await _session.MDataInfoActions.DecryptAsync(appContainerMDataInfo, encryptedValue.Item1);
+                    _mDataInfo = await _session.MDataInfoActions.DeserialiseAsync(plainValue);
                 }
             }
             catch (FfiException ex)
@@ -105,14 +106,14 @@ namespace SafeTodoExample.Service
             {
                 if (_newMdInfoFlag)
                 {
-                    List<byte> serializedData = await _session.MDataInfoActions.SerialiseAsync(_mDataInfo);
-                    MDataInfo appContH = await _session.AccessContainer.GetMDataInfoAsync("apps/" + AppId);
-                    List<byte> userIdCipherBytes = await _session.MDataInfoActions.EncryptEntryKeyAsync(appContH, mdByteList.ToUtfBytes());
-                    List<byte> serializedCipherBytes = await _session.MDataInfoActions.EncryptEntryValueAsync(appContH, serializedData);
-                    using (NativeHandle appContEntActH = await _session.MDataEntryActions.NewAsync())
+                    var serializedMDataInfo = await _session.MDataInfoActions.SerialiseAsync(_mDataInfo);
+                    var appContainerMDataInfo = await _session.AccessContainer.GetMDataInfoAsync("apps/" + AppId);
+                    var encrypedAppKey = await _session.MDataInfoActions.EncryptEntryKeyAsync(appContainerMDataInfo, mdByteList.ToUtfBytes());
+                    var encryptedMDataInfo = await _session.MDataInfoActions.EncryptEntryValueAsync(appContainerMDataInfo, serializedMDataInfo);
+                    using (var appContEntActH = await _session.MDataEntryActions.NewAsync())
                     {
-                        await _session.MDataEntryActions.InsertAsync(appContEntActH, userIdCipherBytes, serializedCipherBytes);
-                        await _session.MData.MutateEntriesAsync(appContH, appContEntActH);
+                        await _session.MDataEntryActions.InsertAsync(appContEntActH, encrypedAppKey, encryptedMDataInfo);
+                        await _session.MData.MutateEntriesAsync(appContainerMDataInfo, appContEntActH);
                     }
                 }
             }
@@ -136,16 +137,18 @@ namespace SafeTodoExample.Service
 
                 if (!_newMdInfoFlag)
                 {
-                    NativeHandle entiredH = await _session.MDataEntries.GetHandleAsync(_mDataInfo);
-                    List<MDataEntry> entries = await _session.MData.ListEntriesAsync(entiredH);
-                    foreach (MDataEntry item in entries)
+                    using (var entriesHandle = await _session.MDataEntries.GetHandleAsync(_mDataInfo))
                     {
-                        var plainkey = item.Key.Key;
-                        var value = await _session.MData.GetValueAsync(_mDataInfo, item.Key.Key);
-                        if (value.Item1.Count > 0)
+                        var encryptedEntries = await _session.MData.ListEntriesAsync(entriesHandle);
+                        foreach (var entry in encryptedEntries)
                         {
-                            var deserializedValue = value.Item1.Deserialize();
-                            messages.Add(deserializedValue as TodoItem);
+                            if (entry.Value.Content.Count > 0)
+                            {
+                                var decryptedKey = await _session.MDataInfoActions.DecryptAsync(_mDataInfo, entry.Key.Key.ToList());
+                                var decryptedValue = await _session.MDataInfoActions.DecryptAsync(_mDataInfo, entry.Value.Content.ToList());
+                                var deserializedValue = decryptedValue.Deserialize();
+                                messages.Add(deserializedValue as TodoItem);
+                            }
                         }
                     }
                 }
@@ -166,13 +169,15 @@ namespace SafeTodoExample.Service
                 {
                     using (NativeHandle entriesHandle = await _session.MDataEntries.NewAsync())
                     {
-                        using (NativeHandle permissions = await _session.MDataPermissions.NewAsync())
-                        using (NativeHandle appKey = await _session.Crypto.AppPubSignKeyAsync())
+                        var mDataPermissionSet = new PermissionSet { Insert = true, ManagePermissions = true, Read = true, Update = true, Delete = true };
+                        using (NativeHandle permissionsH = await _session.MDataPermissions.NewAsync())
+                        using (NativeHandle appSignKeyH = await _session.Crypto.AppPubSignKeyAsync())
                         {
-                            await _session.MDataPermissions.InsertAsync(
-                              permissions, appKey, new PermissionSet { Insert = true, Delete = true, Update = true, Read = true });
-                            await _session.MDataEntries.InsertAsync(entriesHandle, todoItem.Title.ToUtfBytes(), todoItem.Serialize());
-                            await _session.MData.PutAsync(_mDataInfo, permissions, entriesHandle);
+                            await _session.MDataPermissions.InsertAsync(permissionsH, appSignKeyH, mDataPermissionSet);
+                            var encryptedKey = await _session.MDataInfoActions.EncryptEntryKeyAsync(_mDataInfo, todoItem.Title.ToUtfBytes());
+                            var encryptedValue = await _session.MDataInfoActions.EncryptEntryValueAsync(_mDataInfo, todoItem.Serialize());
+                            await _session.MDataEntries.InsertAsync(entriesHandle, encryptedKey, encryptedValue);
+                            await _session.MData.PutAsync(_mDataInfo, permissionsH, entriesHandle);
                         }
                         await StoreMdInfoAsync();
                     }
@@ -181,7 +186,9 @@ namespace SafeTodoExample.Service
                 {
                     using (NativeHandle entriesHandle = await _session.MDataEntryActions.NewAsync())
                     {
-                        await _session.MDataEntryActions.InsertAsync(entriesHandle, todoItem.Title.ToUtfBytes(), todoItem.Serialize());
+                        var encryptedKey = await _session.MDataInfoActions.EncryptEntryKeyAsync(_mDataInfo, todoItem.Title.ToUtfBytes());
+                        var encryptedValue = await _session.MDataInfoActions.EncryptEntryValueAsync(_mDataInfo, todoItem.Serialize());
+                        await _session.MDataEntryActions.InsertAsync(entriesHandle, encryptedKey, encryptedValue);
                         await _session.MData.MutateEntriesAsync(_mDataInfo, entriesHandle);
                     }
                 }
@@ -199,9 +206,10 @@ namespace SafeTodoExample.Service
             {
                 using (var entriesHandle = await _session.MDataEntryActions.NewAsync())
                 {
-                    var keyToUpdate = todoItem.Title.ToUtfBytes();
+                    var keyToUpdate = await _session.MDataInfoActions.EncryptEntryKeyAsync(_mDataInfo, todoItem.Title.ToUtfBytes());
+                    var newValueToUpdate = await _session.MDataInfoActions.EncryptEntryValueAsync(_mDataInfo, todoItem.Serialize());
                     var value = await _session.MData.GetValueAsync(_mDataInfo, keyToUpdate);
-                    await _session.MDataEntryActions.UpdateAsync(entriesHandle, keyToUpdate, todoItem.Serialize(), value.Item2 + 1);
+                    await _session.MDataEntryActions.UpdateAsync(entriesHandle, keyToUpdate, newValueToUpdate, value.Item2 + 1);
                     await _session.MData.MutateEntriesAsync(_mDataInfo, entriesHandle);
                 }
             }
@@ -218,7 +226,7 @@ namespace SafeTodoExample.Service
             {
                 using (var entriesHandle = await _session.MDataEntryActions.NewAsync())
                 {
-                    var keyToDelete = todoItem.Title.ToUtfBytes();
+                    var keyToDelete = await _session.MDataInfoActions.EncryptEntryKeyAsync(_mDataInfo, todoItem.Title.ToUtfBytes());
                     var value = await _session.MData.GetValueAsync(_mDataInfo, keyToDelete);
                     await _session.MDataEntryActions.DeleteAsync(entriesHandle, keyToDelete, value.Item2 + 1);
                     await _session.MData.MutateEntriesAsync(_mDataInfo, entriesHandle);
