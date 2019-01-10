@@ -21,7 +21,7 @@ namespace SafeTodoExample.Service
     {
         public const string AppId = "net.maidsafe.examples.todo";
         public const string AppName = "Safe Todo";
-        private string mdByteList = "MySafeToDo";
+        private string mdByteList = "MySafeTodo";
         public const string AuthDeniedMessage = "Failed to receive Authentication.";
         private static bool _newMdInfoFlag;
         private Session _session;
